@@ -1,7 +1,26 @@
-import '../global.css';
+import "../global.css";
 
-import { Stack } from 'expo-router';
+import { PortalHost } from "@rn-primitives/portal";
+import { Stack } from "expo-router";
 
 export default function Layout() {
-  return <Stack />;
+  return (
+    <>
+      <Stack>
+        <Stack.Screen
+          name="index"
+          options={{
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="(protected)"
+          options={{
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      <PortalHost />
+    </>
+  );
 }
