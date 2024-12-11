@@ -1,4 +1,4 @@
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { Stack, Link } from "expo-router";
 import { Pressable } from "react-native";
 

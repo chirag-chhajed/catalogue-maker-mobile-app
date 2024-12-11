@@ -1,7 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { helloSlice } from "~/store/features/hello";
 
 import { api } from "./features/api";
+
+import { helloSlice } from "~/store/features/hello";
 
 export const store = configureStore({
   reducer: {

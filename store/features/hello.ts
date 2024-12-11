@@ -20,7 +20,7 @@ export const helloSlice = createSlice({
     },
     changeAccessToken: (
       state,
-      action: PayloadAction<{ accessToken: string }>
+      action: PayloadAction<{ accessToken: string }>,
     ) => {
       state.accessToken = action.payload.accessToken;
     },

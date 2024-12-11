@@ -44,7 +44,7 @@ const AccordionItem = React.forwardRef<
 >(({ className, value, ...props }, ref) => {
   return (
     <Animated.View
-      className={"overflow-hidden"}
+      className="overflow-hidden"
       layout={LinearTransition.duration(200)}
     >
       <AccordionPrimitive.Item
@@ -88,7 +88,7 @@ const AccordionTrigger = React.forwardRef<
           >
             <>{children}</>
             <Animated.View style={chevronStyle}>
-              <ChevronDown size={18} className={"shrink-0 text-foreground"} />
+              <ChevronDown size={18} className="shrink-0 text-foreground" />
             </Animated.View>
           </Trigger>
         </AccordionPrimitive.Trigger>

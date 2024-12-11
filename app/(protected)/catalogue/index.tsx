@@ -1,9 +1,10 @@
 import { AntDesign } from "@expo/vector-icons"; // Add this import
+import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { View, Pressable } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+
 import img from "~/assets/266.png";
 import {
   Card,

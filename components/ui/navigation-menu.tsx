@@ -11,6 +11,7 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
+
 import { ChevronDown } from "~/lib/icons/ChevronDown";
 import { cn } from "~/lib/utils";
 
@@ -88,7 +89,7 @@ const NavigationMenuTrigger = React.forwardRef<
           className={cn(
             "relative h-3 w-3 text-foreground web:transition web:duration-200",
           )}
-          aria-hidden={true}
+          aria-hidden
         />
       </Animated.View>
     </NavigationMenuPrimitive.Trigger>

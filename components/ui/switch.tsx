@@ -7,6 +7,7 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from "react-native-reanimated";
+
 import { useColorScheme } from "~/lib/useColorScheme";
 import { cn } from "~/lib/utils";
 
@@ -84,11 +85,7 @@ const SwitchNative = React.forwardRef<
         ref={ref}
       >
         <Animated.View style={animatedThumbStyle}>
-          <SwitchPrimitives.Thumb
-            className={
-              "h-7 w-7 rounded-full bg-background shadow-md shadow-foreground/25 ring-0"
-            }
-          />
+          <SwitchPrimitives.Thumb className="h-7 w-7 rounded-full bg-background shadow-md shadow-foreground/25 ring-0" />
         </Animated.View>
       </SwitchPrimitives.Root>
     </Animated.View>
