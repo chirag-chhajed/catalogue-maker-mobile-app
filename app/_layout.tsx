@@ -3,9 +3,11 @@ import "../global.css";
 import { PortalHost } from "@rn-primitives/portal";
 import { Stack } from "expo-router";
 
+import { ReduxProvider } from "~/store/provider";
+
 export default function Layout() {
   return (
-    <>
+    <ReduxProvider>
       <Stack>
         <Stack.Screen
           name="index"
@@ -21,6 +23,6 @@ export default function Layout() {
         />
       </Stack>
       <PortalHost />
-    </>
+    </ReduxProvider>
   );
 }

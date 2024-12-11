@@ -14,8 +14,9 @@ export default function JoinForm() {
       <View className="mb-8 items-center">
         <Image
           source={{
-            uri: "https://illustrations.popsy.co/amber/remote-team.svg",
+            uri: "https://picsum.photos/192",
           }}
+          style={{ height: 192, width: 192 }}
           className="h-48 w-48"
           resizeMode="contain"
         />
