@@ -1,18 +1,20 @@
 import { Feather } from "@expo/vector-icons";
-import { Stack, Link } from "expo-router";
+import { Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
+import { useDrawerHelper } from "~/lib/useDrawerHelper";
 
 const CatalogueLayout = () => {
+  const { openDrawer } = useDrawerHelper();
   return (
     <Stack
       screenOptions={{
         headerRight: () => (
-          <Pressable className=" p-3 ">
-            <Link href="/(protected)/catalogue/create-catalog">
-              <Feather name="menu" size={24} />
-            </Link>
+          <Pressable onPress={openDrawer} className=" p-3 ">
+            {/* <Link href="/(protected)/catalogue/create-catalog"> */}
+            <Feather name="menu" size={24} />
+            {/* </Link> */}
           </Pressable>
         ),
         headerShadowVisible: false,
@@ -24,7 +26,6 @@ const CatalogueLayout = () => {
           headerLeft: () => (
             <Text className="text-3xl font-bold ">Catalogues</Text>
           ),
-
           headerTitle: "",
           headerShadowVisible: false,
         }}

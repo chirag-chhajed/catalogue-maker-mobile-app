@@ -14,6 +14,7 @@ GoogleSignin.configure({
 });
 
 export default function App() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function onGoogleButtonPress() {
     // Check if your device supports Google Play
     await GoogleSignin.signOut();
@@ -37,7 +38,7 @@ export default function App() {
         <View className=" flex-1 items-center justify-center">
           <Button
             onPress={() => {
-              router.push("/(protected)/catalogue/");
+              router.push("/(protected)/(routes)/catalogue");
             }}
             size="lg"
           >
