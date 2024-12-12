@@ -7,7 +7,19 @@
     "plugins": [
       "expo-router",
       "@react-native-firebase/app",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "react-native-share",
+        {
+          "ios": ["fb", "instagram", "twitter", "whatsapp"],
+          "android": [
+            "com.facebook.katana",
+            "com.instagram.android",
+            "com.twitter.android",
+            "com.whatsapp"
+          ]
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
