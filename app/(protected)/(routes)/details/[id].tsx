@@ -28,9 +28,11 @@ const DetailsPage = () => {
       <FlashList
         data={MOCK_DATA}
         estimatedItemSize={width}
+        estimatedListSize={{ height, width }}
         renderItem={({ item }) => <Slide {...item} />}
         showsHorizontalScrollIndicator={false}
         pagingEnabled
+        horizontal
       />
     </View>
   );
@@ -58,6 +60,7 @@ const Slide = ({
           height={275}
           data={images}
           loop={false}
+          vertical
           renderItem={({ item }) => (
             <Image
               style={{ width: "100%", height: "100%" }}

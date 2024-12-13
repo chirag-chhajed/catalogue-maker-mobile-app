@@ -7,6 +7,7 @@ import { useLocalSearchParams, Link } from "expo-router";
 import { useState } from "react";
 import { View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Share from "react-native-share";
 
 import img from "~/assets/266.png";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
@@ -216,7 +217,7 @@ export default function DetailsScreen() {
         </View>
       )}
       {/* Fixed bottom buttons */}
-      <View className="absolute bottom-6 flex w-full flex-row items-center justify-center gap-36">
+      <View className="absolute bottom-6 flex w-full flex-row items-center justify-center gap-16">
         <Pressable
           onPress={pickCameraImage}
           className="h-16 w-16 items-center justify-center rounded-full bg-blue-600"
@@ -229,6 +230,26 @@ export default function DetailsScreen() {
           className="h-16 w-16 items-center justify-center rounded-full bg-blue-600"
         >
           <AntDesign name="picture" size={28} color="white" />
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            Share.open({
+              urls: [
+                "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
+                "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
+              ],
+              title: "Hello, this photos were shared from React Native Share",
+            })
+              .then((res) => {
+                console.log(res);
+              })
+              .catch((err) => {
+                err && console.log(err);
+              });
+          }}
+          className="h-16 w-16 items-center justify-center rounded-full bg-blue-600"
+        >
+          <AntDesign name="sharealt" size={28} color="white" />
         </Pressable>
       </View>
     </View>
@@ -279,3 +300,18 @@ const CompactCard = ({ item }: { item: CardItem }) => (
     </Link>
   </Card>
 );
+// file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg
+// file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg
+// Share.open({
+//   urls: [
+//     "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
+//     "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
+//   ],
+//   title: "Hello, this photos were shared from React Native Share",
+// })
+//   .then((res) => {
+//     console.log(res);
+//   })
+//   .catch((err) => {
+//     err && console.log(err);
+//   });
