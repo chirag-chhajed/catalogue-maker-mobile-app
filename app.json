@@ -19,6 +19,12 @@
             "com.whatsapp"
           ]
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": ["./assets/Geist[wght].ttf", "./assets/GeistMono[wght].ttf"]
+        }
       ]
     ],
     "experiments": {

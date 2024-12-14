@@ -1,22 +1,28 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-type HelloState = {
+type UserAuthState = {
   accessToken: string | null;
-  refreshToken: string | null;
+  user: {
+    id: number;
+    email: string;
+    name: string;
+    organizationId?: number;
+    role?: "admin" | "editor" | "viewer";
+  } | null;
 };
 
-const initialState: HelloState = {
+const initialState: UserAuthState = {
   accessToken: null,
-  refreshToken: null,
+  user: null,
 };
 
 export const helloSlice = createSlice({
   name: "hello",
   initialState,
   reducers: {
-    changeState: (state, action: PayloadAction<HelloState>) => {
+    changeState: (state, action: PayloadAction<UserAuthState>) => {
       state.accessToken = action.payload.accessToken;
-      state.refreshToken = action.payload.refreshToken;
+      state.user = action.payload.user;
     },
     changeAccessToken: (
       state,
@@ -26,7 +32,7 @@ export const helloSlice = createSlice({
     },
     clearState: (state) => {
       state.accessToken = null;
-      state.refreshToken = null;
+      state.user = null;
     },
   },
 });

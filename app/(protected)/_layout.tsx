@@ -1,7 +1,13 @@
+import { Redirect } from "expo-router";
 import { Drawer } from "expo-router/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useAppSelector } from "~/store/hooks";
 
 const ProtectedLayout = () => {
+  const { accessToken } = useAppSelector((state) => state.hello);
+  if (!accessToken) {
+    return <Redirect href="/" />;
+  }
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer screenOptions={{ headerShown: false }}>

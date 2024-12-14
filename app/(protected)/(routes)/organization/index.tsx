@@ -1,7 +1,6 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import React, { useState } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 
 import img from "~/assets/266.png";
@@ -15,33 +14,16 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
+import { useGetOrgsQuery } from "~/store/features/api";
 
 const Index = () => {
-  const [organizationsExist, setOrganizationsExist] = useState(true);
+  // const [organizationsExist, setOrganizationsExist] = useState(true);
+  const { data: organizations, isLoading } = useGetOrgsQuery();
+  const organizationsExist = (organizations?.length ?? 0) > 0;
 
-  const organizations = [
-    {
-      id: 1,
-      name: "Team Alpha",
-      role: "admin",
-      description: "Development team",
-      image: "https://picsum.photos/200",
-    },
-    {
-      id: 2,
-      name: "Project Beta",
-      role: "editor",
-      description: "Design team",
-      image: "https://picsum.photos/200",
-    },
-    {
-      id: 3,
-      name: "Studio Gamma",
-      role: "viewer",
-      description: "Marketing team",
-      image: "https://picsum.photos/200",
-    },
-  ];
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
 
   return (
     <View className="flex-1 p-4">
@@ -54,7 +36,7 @@ const Index = () => {
           {/* <Link className="mt-4" href={"/(protected)/organization/create-form"}> */}
           <Pressable className=" rounded-md bg-blue-600 px-6 py-3">
             <Link
-              href="/(protected)/organization/create-form"
+              href="/(protected)/(routes)/organization/create-form"
               className="text-center font-semibold text-white"
             >
               Create Your First Organization
@@ -102,7 +84,7 @@ const Index = () => {
       )}
 
       <View className="self-center border-t border-gray-200 py-4">
-        <Link href="/(protected)/organization/join-form">
+        <Link href="/(protected)/(routes)/organization/join-form">
           <Text className="text-center text-blue-600 underline underline-offset-2">
             Have an invite code to join an organization?
           </Text>
