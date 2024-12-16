@@ -1,7 +1,7 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { View, ScrollView, Pressable } from "react-native";
+import { Link, router } from "expo-router";
+import { View, ScrollView, Pressable, TouchableOpacity } from "react-native";
 
 import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
@@ -15,12 +15,13 @@ import {
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
 import { useGetOrgsQuery } from "~/store/features/api";
+import { useOrganitionIdDispatch } from "~/store/hooks";
 
 const Index = () => {
   // const [organizationsExist, setOrganizationsExist] = useState(true);
   const { data: organizations, isLoading } = useGetOrgsQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
-
+  const { changeOrganizationId } = useOrganitionIdDispatch();
   if (isLoading) {
     return <Text>Loading...</Text>;
   }
@@ -52,31 +53,38 @@ const Index = () => {
               estimatedItemSize={150}
               contentContainerStyle={{ padding: 16 }}
               renderItem={({ item: org }) => (
-                <Card
+                <TouchableOpacity
+                  onPress={() => {
+                    changeOrganizationId(org.id);
+                    router.push("/(protected)/(routes)/catalogue");
+                  }}
                   key={org.id}
-                  className="mb-4 flex w-full flex-row items-end justify-between py-3"
                 >
-                  <View>
-                    <CardHeader>
-                      <CardTitle>{org.name}</CardTitle>
-                      <CardDescription>{org.description}</CardDescription>
-                    </CardHeader>
+                  <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
+                    <View>
+                      <CardHeader>
+                        <CardTitle>{org.name}</CardTitle>
+                        <CardDescription>{org.description}</CardDescription>
+                      </CardHeader>
 
-                    <CardFooter>
-                      <Badge
-                        variant={org.role === "admin" ? "default" : "secondary"}
-                      >
-                        <Text className="capitalize">{org.role}</Text>
-                      </Badge>
-                    </CardFooter>
-                  </View>
-                  <CardContent>
-                    <Image
-                      source="https://picsum.photos/80"
-                      style={{ height: 80, width: 80, borderRadius: 40 }}
-                    />
-                  </CardContent>
-                </Card>
+                      <CardFooter>
+                        <Badge
+                          variant={
+                            org.role === "admin" ? "default" : "secondary"
+                          }
+                        >
+                          <Text className="capitalize">{org.role}</Text>
+                        </Badge>
+                      </CardFooter>
+                    </View>
+                    <CardContent>
+                      <Image
+                        source="https://picsum.photos/80"
+                        style={{ height: 80, width: 80, borderRadius: 40 }}
+                      />
+                    </CardContent>
+                  </Card>
+                </TouchableOpacity>
               )}
             />
           </View>

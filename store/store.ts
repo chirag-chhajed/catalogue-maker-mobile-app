@@ -1,12 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import { api } from "./features/api";
-
-import { helloSlice } from "~/store/features/hello";
+import { api } from "~/store/features/api";
+import { authSlice } from "~/store/features/hello";
+import { helloSlice } from "~/store/features/organizationId";
 
 export const store = configureStore({
   reducer: {
-    hello: helloSlice.reducer,
+    hello: authSlice.reducer,
+    orgId: helloSlice.reducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>

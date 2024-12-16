@@ -42,6 +42,17 @@ type GetOrgResponse = {
   description: string | null;
   role: "admin" | "editor" | "viewer";
 }[];
+
+type GetCatalogues = {
+  name: string;
+  description: string | null;
+  organizationId: number;
+  id: number;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: number;
+  deletedAt: Date | null;
+}[];
 export const api = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
@@ -94,11 +105,25 @@ export const api = createApi({
       invalidatesTags: ["organizations"],
     }),
     getOrgs: builder.query<GetOrgResponse, void>({
-      query: () => "/organizations",
+      query: () => "/organization/organizations",
       providesTags: () => ["organizations"],
     }),
+    createCatalog: builder.mutation<void, CreateOrgArg>({
+      query: ({ name, description }) => ({
+        method: "POST",
+        url: "/catalogue/create",
+        body: { name, description },
+      }),
+    }),
+    getCatalog: builder.query<GetCatalogues, void>({
+      query: () => "/catalogue/",
+      providesTags: ["catalogues"],
+    }),
+    getCatalogItems: builder.query<void, { id: number }>({
+      query: ({ id }) => `/catalogue/${id}`,
+    }),
   }),
-  tagTypes: ["organizations"],
+  tagTypes: ["organizations", "catalogues"],
 });
 
 export const {
@@ -106,4 +131,7 @@ export const {
   useRefreshQuery,
   useCreateOrgMutation,
   useGetOrgsQuery,
+  useCreateCatalogMutation,
+  useGetCatalogQuery,
+  useGetCatalogItemsQuery,
 } = api;

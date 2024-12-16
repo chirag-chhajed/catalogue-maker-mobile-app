@@ -93,7 +93,7 @@ export default function CreateForm() {
             />
             <Controller
               control={form.control}
-              name="name"
+              name="description"
               render={({
                 field: { onChange, onBlur, value },
                 fieldState: { error },

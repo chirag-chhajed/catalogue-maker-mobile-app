@@ -3,7 +3,7 @@ import { FlashList } from "@shopify/flash-list";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, Link } from "expo-router";
+import { useLocalSearchParams, Link, useNavigation } from "expo-router";
 import { useState } from "react";
 import { View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +20,11 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
+import { useGetCatalogItemsQuery } from "~/store/features/api";
+import {
+  openPicker,
+  Config,
+} from "@baronha/react-native-multiple-image-picker";
 
 // Add this type definition
 type CardItem = {
@@ -29,13 +34,58 @@ type CardItem = {
   price: number;
   image: string;
 };
+
+const config: Config = {
+  maxSelect: 5,
+  numberOfColumn: 4,
+  mediaType: "image",
+  selectBoxStyle: "number",
+  selectMode: "multiple",
+  language: "en",
+  theme: "system",
+  isHiddenOriginalButton: false,
+  crop: {
+    ratio: [
+      {
+        title: "16:9",
+        height: 16,
+        width: 9,
+      },
+      {
+        title: "4:3",
+        height: 4,
+        width: 3,
+      },
+      {
+        title: "1:1",
+
+        height: 1,
+        width: 1,
+      },
+      {
+        title: "2:3",
+        height: 2,
+        width: 3,
+      },
+    ],
+    freeStyle: true,
+    circle: false,
+  },
+};
 export default function DetailsScreen() {
-  const { id, title } = useLocalSearchParams();
+  const { id, title } = useLocalSearchParams<{ id: number; title: string }>();
   const [image, setImage] = useState<string | null>(null);
   const [isListView, setIsListView] = useState(true);
   const [itemsExist, setItemsExist] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const { data } = useGetCatalogItemsQuery(
+    { id },
+    {
+      skip: !id,
+    },
+  );
+  console.log(data);
   const insets = useSafeAreaInsets();
   const contentInsets = {
     top: insets.top,
@@ -68,17 +118,22 @@ export default function DetailsScreen() {
   };
 
   const pickDocImage = async () => {
-    const doc = await DocumentPicker.getDocumentAsync({
-      multiple: true,
-      type: ["image/*"],
-    });
-    console.log(doc);
-    if (!doc.canceled && doc.assets.length <= 5) {
-      setImage(doc.assets[0].uri);
-    } else if (doc.assets.length > 5) {
-      Alert.alert("Limit Exceeded", "You can only select up to 5 images.");
-    }
+    try {
+      const result = await openPicker(config);
+      setImage(result);
+    } catch (error) {}
+    // const doc = await DocumentPicker.getDocumentAsync({
+    //   multiple: true,
+    //   type: ["image/*"],
+    // });
+    // console.log(doc);
+    // if (!doc.canceled && doc.assets.length <= 5) {
+    //   setImage(doc.assets[0].uri);
+    // } else if (doc.assets.length > 5) {
+    //   Alert.alert("Limit Exceeded", "You can only select up to 5 images.");
+    // }
   };
+  console.log(image, "image");
 
   return (
     <View className="flex-1">
@@ -235,8 +290,9 @@ export default function DetailsScreen() {
           onPress={() => {
             Share.open({
               urls: [
-                "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
-                "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
+                "file:///storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images/IMG-20241212-WA0010.jpg",
+                // "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
+                // "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
               ],
               title: "Hello, this photos were shared from React Native Share",
             })

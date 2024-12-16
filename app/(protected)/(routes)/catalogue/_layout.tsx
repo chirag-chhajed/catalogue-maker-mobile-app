@@ -9,16 +9,16 @@ const CatalogueLayout = () => {
   const { openDrawer } = useDrawerHelper();
   return (
     <Stack
-      screenOptions={{
-        headerRight: () => (
-          <Pressable onPress={openDrawer} className=" p-3 ">
-            {/* <Link href="/(protected)/catalogue/create-catalog"> */}
-            <Feather name="menu" size={24} />
-            {/* </Link> */}
-          </Pressable>
-        ),
-        headerShadowVisible: false,
-      }}
+    // screenOptions={{
+    //   headerRight: () => (
+    //     <Pressable onPress={openDrawer} className=" p-3 ">
+    //       {/* <Link href="/(protected)/catalogue/create-catalog"> */}
+    //       <Feather name="menu" size={24} />
+    //       {/* </Link> */}
+    //     </Pressable>
+    //   ),
+    //   headerShadowVisible: false,
+    // }}
     >
       <Stack.Screen
         name="index"

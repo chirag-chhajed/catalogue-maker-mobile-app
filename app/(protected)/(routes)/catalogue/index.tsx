@@ -14,24 +14,27 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
+import { useGetCatalogQuery } from "~/store/features/api";
 
 type CardItem = {
   id: number;
-  title: string;
+  name: string;
   description: string;
 };
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 
 const Index = () => {
-  const [cataloguesExist, setCataloguesExist] = useState(true); // Changed to true for testing
+  // const [cataloguesExist, setCataloguesExist] = useState(true); // Changed to true for testing
   const [searchQuery, setSearchQuery] = useState("");
   const [isListView, setIsListView] = useState(true);
-
-  const dummyData = [1, 2, 3, 4].map((item, index) => ({
-    id: index,
-    title: `Catalogue ${item}`,
-    description: `Description for catalogue ${item}`,
-  }));
+  const { data } = useGetCatalogQuery();
+  console.log(isListView);
+  const cataloguesExist = (data?.length ?? 0) > 0;
+  // const dummyData = [1, 2, 3, 4].map((item, index) => ({
+  //   id: index,
+  //   title: `Catalogue ${item}`,
+  //   description: `Description for catalogue ${item}`,
+  // }));
   return (
     <View className="flex-1">
       {!cataloguesExist ? (
@@ -42,7 +45,7 @@ const Index = () => {
           </Text>
           <Pressable className="rounded-md bg-blue-600 px-6 py-3">
             <Link
-              href="/(protected)/catalogue/create-catalog"
+              href="/(protected)/(routes)/catalogue/create-catalog"
               className="text-center font-semibold text-white"
             >
               Create Your First catalogue
@@ -98,7 +101,7 @@ const Index = () => {
 
           <View className=" flex-1 px-4">
             <FlashList
-              data={dummyData}
+              data={data}
               estimatedItemSize={300}
               ItemSeparatorComponent={() =>
                 isListView ? <View className="h-2" /> : <View className="h-4" />
@@ -124,12 +127,12 @@ const Index = () => {
                         pathname: "/catalogue/[id]",
                         params: {
                           id: item.id,
-                          title: item.title,
+                          title: item.name,
                         },
                       }}
                     >
                       <CardHeader>
-                        <CardTitle>{item.title}</CardTitle>
+                        <CardTitle>{item.name}</CardTitle>
                         <CardDescription>{item.description}</CardDescription>
                       </CardHeader>
                     </Link>
@@ -139,7 +142,7 @@ const Index = () => {
             />
           </View>
           {/* Floating Action Button */}
-          <Link href="/(protected)/catalogue/create-catalog" asChild>
+          <Link href="/(protected)/(routes)/catalogue/create-catalog" asChild>
             <Pressable className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg">
               <AntDesign name="plus" size={24} color="white" />
             </Pressable>
@@ -166,14 +169,14 @@ const CompactCard = ({ item }: { item: CardItem }) => (
         pathname: "/catalogue/[id]",
         params: {
           id: item.id,
-          title: item.title,
+          title: item.name,
         },
       }}
       className="w-full flex-1 "
     >
       <View className="w-full p-3">
         <CardTitle className="text-base font-bold text-gray-900">
-          {item.title}
+          {item.name}
         </CardTitle>
         <Text className="text-sm text-gray-600" numberOfLines={2}>
           {item.description}

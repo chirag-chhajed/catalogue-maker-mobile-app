@@ -10,7 +10,11 @@ import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
 import { useLoginMutation } from "~/store/features/api";
 import { changeAccessToken } from "~/store/features/hello";
-import { useAppDispatch, useAppSelector } from "~/store/hooks";
+import {
+  useAppDispatch,
+  useAppSelector,
+  useOrganizationIdSelector,
+} from "~/store/hooks";
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_CLIENT_ID,
@@ -37,7 +41,7 @@ export default function App() {
   const [login, { isLoading }] = useLoginMutation();
   const router = useRouter();
   const { accessToken } = useAppSelector((state) => state.hello);
-  const [organizationId] = useMMKVNumber("user_preferred_org");
+  const organizationId = useOrganizationIdSelector();
 
   if (accessToken && organizationId) {
     return <Redirect href="/(protected)/(routes)/catalogue" />;
@@ -64,7 +68,7 @@ export default function App() {
                     dispatch(
                       changeAccessToken({ accessToken: data.accessToken }),
                     );
-                    router.push("/(protected)/(routes)/catalogue");
+                    router.push("/(protected)/(routes)/organization");
                   })
                   .catch((err) => {
                     console.log(err);

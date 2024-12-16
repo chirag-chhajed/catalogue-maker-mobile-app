@@ -16,7 +16,7 @@ const initialState: UserAuthState = {
   user: null,
 };
 
-export const helloSlice = createSlice({
+export const authSlice = createSlice({
   name: "hello",
   initialState,
   reducers: {
@@ -37,5 +37,4 @@ export const helloSlice = createSlice({
   },
 });
 
-export const { changeAccessToken, changeState, clearState } =
-  helloSlice.actions;
+export const { changeAccessToken, changeState, clearState } = authSlice.actions;

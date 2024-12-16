@@ -1,21 +1,31 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
+import { Text } from "react-native";
 import { AppState } from "react-native";
-import { useMMKVNumber, useMMKVListener } from "react-native-mmkv";
-
 import { api, useRefreshQuery } from "~/store/features/api";
-import { useAppDispatch } from "~/store/hooks";
-import { storage } from "~/store/storage";
+import { useAppDispatch, useOrganizationIdSelector } from "~/store/hooks";
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [organizationId] = useMMKVNumber("user_preferred_org");
-  useRefreshQuery({
-    organizationId,
-  });
+  const organizationId = useOrganizationIdSelector();
+  const [shouldFetch, setShouldFetch] = useState(false);
 
-  useMMKVListener((key) => {
-    console.log(`Value for "${key}" changed!`);
-  }, storage);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldFetch(true);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [organizationId]);
+
+  const { isLoading, data } = useRefreshQuery(
+    {
+      organizationId,
+    },
+    {
+      skip: !shouldFetch,
+    },
+  );
+  // console.log("isLoading", data);
 
   const appState = useRef(AppState.currentState);
   const dispatch = useAppDispatch();
@@ -47,6 +57,10 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.remove();
     };
   }, []);
+
+  if (isLoading) {
+    return <Text>Loading...</Text>;
+  }
 
   return <>{children}</>;
 };
