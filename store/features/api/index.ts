@@ -1,6 +1,12 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import {
+  BaseQueryFn,
+  createApi,
+  FetchArgs,
+  fetchBaseQuery,
+  FetchBaseQueryError,
+} from "@reduxjs/toolkit/query/react";
 
-import { changeState } from "../hello";
+import { changeState, clearState } from "../hello";
 
 import type { RootState } from "~/store/store";
 
@@ -53,19 +59,80 @@ type GetCatalogues = {
   createdBy: number;
   deletedAt: Date | null;
 }[];
+export type ImageType = {
+  id: number;
+  imageUrl: string;
+  blurhash: string | null;
+};
+type GetCatalogItems = {
+  catalogueDetail: {
+    description: string | null;
+    id: number;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: number;
+    organizationId: number;
+    deletedAt: Date | null;
+  };
+  items: {
+    id: number;
+    name: string;
+    description: string | null;
+    price: string | null;
+    images: ImageType[];
+  }[];
+};
+
+const baseQuery = fetchBaseQuery({
+  baseUrl: "https://605l6z6z-3434.inc1.devtunnels.ms/api",
+  credentials: "include",
+  prepareHeaders(headers, api) {
+    const token = (api.getState() as RootState).hello.accessToken;
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
+});
+const baseQueryWithReauth: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  FetchBaseQueryError
+> = async (args, api, extraOptions) => {
+  let result = await baseQuery(args, api, extraOptions);
+
+  // If the request failed due to an expired token,
+  // refresh the token and retry the request.
+
+  if (result.error?.status === 403) {
+    const refreshResult = (await baseQuery(
+      "/auth/refresh",
+      api,
+      extraOptions,
+    )) as {
+      data: { accessToken: string; user: BasePayload } | undefined;
+      error?: FetchBaseQueryError;
+    };
+
+    if (refreshResult.data) {
+      api.dispatch(
+        changeState({
+          accessToken: refreshResult.data.accessToken,
+          user: refreshResult.data.user,
+        }),
+      );
+      result = await baseQuery(args, api, extraOptions);
+    } else {
+      api.dispatch(clearState());
+    }
+  }
+  return result;
+};
 export const api = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({
-    baseUrl: "https://605l6z6z-3434.inc1.devtunnels.ms/api",
-    credentials: "include",
-    prepareHeaders(headers, api) {
-      const token = (api.getState() as RootState).hello.accessToken;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
+  tagTypes: ["Organization", "Catalogue", "Item"],
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginArg>({
       query: ({ name, email }) => ({
@@ -102,11 +169,11 @@ export const api = createApi({
         url: "/organization/create",
         body: { name, description },
       }),
-      invalidatesTags: ["organizations"],
+      invalidatesTags: ["Organization"],
     }),
     getOrgs: builder.query<GetOrgResponse, void>({
       query: () => "/organization/organizations",
-      providesTags: () => ["organizations"],
+      providesTags: ["Organization"],
     }),
     createCatalog: builder.mutation<void, CreateOrgArg>({
       query: ({ name, description }) => ({
@@ -114,16 +181,28 @@ export const api = createApi({
         url: "/catalogue/create",
         body: { name, description },
       }),
+      invalidatesTags: ["Catalogue"],
     }),
     getCatalog: builder.query<GetCatalogues, void>({
       query: () => "/catalogue/",
-      providesTags: ["catalogues"],
+      providesTags: ["Catalogue"],
     }),
-    getCatalogItems: builder.query<void, { id: number }>({
+    getCatalogItems: builder.query<GetCatalogItems, { id: number }>({
       query: ({ id }) => `/catalogue/${id}`,
+      providesTags: ["Item"],
+    }),
+    createCatalogItem: builder.mutation<
+      void,
+      { id: number; formData: FormData }
+    >({
+      query: ({ formData, id }) => ({
+        method: "POST",
+        url: `/catalogue/${id}/create-item`,
+        body: formData,
+      }),
+      invalidatesTags: ["Item"],
     }),
   }),
-  tagTypes: ["organizations", "catalogues"],
 });
 
 export const {
@@ -134,4 +213,5 @@ export const {
   useCreateCatalogMutation,
   useGetCatalogQuery,
   useGetCatalogItemsQuery,
+  useCreateCatalogItemMutation,
 } = api;

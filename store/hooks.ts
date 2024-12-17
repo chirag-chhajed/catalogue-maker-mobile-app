@@ -8,6 +8,8 @@ import {
   clearOrganizationId,
 } from "~/store/features/organizationId";
 import type { AppDispatch, RootState } from "~/store/store";
+import { type Result } from "@baronha/react-native-multiple-image-picker";
+import { clearImages, setImages } from "./features/imageSlice";
 
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 export const useAppSelector = useSelector.withTypes<RootState>();
@@ -40,4 +42,24 @@ export const useOrganizationIdSelector = () => {
   }, [organizationId]);
 
   return organizationId;
+};
+
+export const useGetImages = () => {
+  const images = useAppSelector((state) => state.image);
+  // console.log(images);
+  return images;
+};
+
+export const useDispatchImages = () => {
+  const dispatch = useAppDispatch();
+  return {
+    setImages: (
+      images: {
+        uri: string;
+        name: string;
+        type: string;
+      }[],
+    ) => dispatch(setImages(images)),
+    clearImages: () => dispatch(clearImages()),
+  };
 };

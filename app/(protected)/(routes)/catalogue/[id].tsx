@@ -1,9 +1,13 @@
+import {
+  openPicker,
+  type Config,
+} from "@baronha/react-native-multiple-image-picker";
 import { AntDesign } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useLocalSearchParams, Link, useNavigation } from "expo-router";
+import { useLocalSearchParams, Link, useNavigation, router } from "expo-router";
 import { useState } from "react";
 import { View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,19 +24,16 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
-import { useGetCatalogItemsQuery } from "~/store/features/api";
-import {
-  openPicker,
-  Config,
-} from "@baronha/react-native-multiple-image-picker";
+import { type ImageType, useGetCatalogItemsQuery } from "~/store/features/api";
+import { useDispatchImages } from "~/store/hooks";
 
 // Add this type definition
 type CardItem = {
   id: number;
-  title: string;
-  description: string;
-  price: number;
-  image: string;
+  name: string;
+  description: string | null;
+  price: string | null;
+  images: ImageType[];
 };
 
 const config: Config = {
@@ -78,14 +79,14 @@ export default function DetailsScreen() {
   const [isListView, setIsListView] = useState(true);
   const [itemsExist, setItemsExist] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const { setImages } = useDispatchImages();
   const { data } = useGetCatalogItemsQuery(
     { id },
     {
       skip: !id,
     },
   );
-  console.log(data);
+
   const insets = useSafeAreaInsets();
   const contentInsets = {
     top: insets.top,
@@ -120,7 +121,14 @@ export default function DetailsScreen() {
   const pickDocImage = async () => {
     try {
       const result = await openPicker(config);
-      setImage(result);
+      setImages(
+        result.map((res) => ({
+          uri: `file://${res.realPath}`,
+          type: res.mime,
+          name: res.fileName,
+        })),
+      );
+      router.push(`/(protected)/(routes)/catalogue/create-item-form?id=${id}`);
     } catch (error) {}
     // const doc = await DocumentPicker.getDocumentAsync({
     //   multiple: true,
@@ -133,7 +141,6 @@ export default function DetailsScreen() {
     //   Alert.alert("Limit Exceeded", "You can only select up to 5 images.");
     // }
   };
-  console.log(image, "image");
 
   return (
     <View className="flex-1">
@@ -224,31 +231,32 @@ export default function DetailsScreen() {
           {/* Cards Section */}
           <View className="flex-1 px-4">
             <FlashList
-              data={MOCK_CARDS}
+              data={data?.items}
               renderItem={({ item }) =>
                 isListView ? (
-                  <CompactCard item={item} />
+                  <CompactCard item={item} id={id} />
                 ) : (
                   <Card className="overflow-hidden rounded-2xl bg-white shadow-sm">
                     <Image
                       style={{ height: 225, width: "100%" }}
-                      source={item.image}
+                      source={item.images[0].imageUrl}
                       contentFit="cover"
                       transition={1000}
                       className="rounded-t-2xl"
+                      placeholder={item.images[0].blurhash}
                     />
                     <Link
                       href={{
-                        pathname: "/(protected)/details/[id]",
+                        pathname: "/(protected)/(routes)/details/[id]",
                         params: {
-                          id: item.id,
-                          title: item.title,
+                          id,
+                          title: item.name,
                         },
                       }}
                     >
                       <CardHeader className="gap-2 p-4">
                         <CardTitle className="text-lg font-bold text-gray-900">
-                          {item.title}
+                          {item.name}
                         </CardTitle>
                         <Text
                           numberOfLines={2}
@@ -273,12 +281,12 @@ export default function DetailsScreen() {
       )}
       {/* Fixed bottom buttons */}
       <View className="absolute bottom-6 flex w-full flex-row items-center justify-center gap-16">
-        <Pressable
+        {/* <Pressable
           onPress={pickCameraImage}
           className="h-16 w-16 items-center justify-center rounded-full bg-blue-600"
         >
           <AntDesign name="camera" size={28} color="white" />
-        </Pressable>
+        </Pressable> */}
 
         <Pressable
           onPress={pickDocImage}
@@ -291,8 +299,6 @@ export default function DetailsScreen() {
             Share.open({
               urls: [
                 "file:///storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/WhatsApp Images/IMG-20241212-WA0010.jpg",
-                // "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
-                // "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
               ],
               title: "Hello, this photos were shared from React Native Share",
             })
@@ -312,20 +318,21 @@ export default function DetailsScreen() {
   );
 }
 
-const CompactCard = ({ item }: { item: CardItem }) => (
+const CompactCard = ({ item, id }: { item: CardItem; id: number }) => (
   <Card className="flex-row overflow-hidden rounded-lg bg-white shadow-sm">
     <Image
       style={{ width: 100, height: 100 }}
-      source={item.image}
+      source={item.images[0].imageUrl}
       contentFit="cover"
       className="rounded-l-lg"
+      placeholder={item.images[0].blurhash}
     />
     <Link
       href={{
-        pathname: "/(protected)/details/[id]",
+        pathname: "/(protected)/(routes)/details/[id]",
         params: {
-          id: item.id,
-          title: item.title,
+          id,
+          title: item.name,
         },
       }}
       className="min-w-0 flex-1"
@@ -335,7 +342,7 @@ const CompactCard = ({ item }: { item: CardItem }) => (
           className="mb-1 text-base font-bold text-gray-900"
           numberOfLines={1}
         >
-          {item.title}
+          {item.name}
         </CardTitle>
 
         <Text

@@ -33,7 +33,7 @@ export default function CreateCatalogForm() {
     try {
       const resp = await create(data).unwrap();
       console.log(resp);
-      router.replace("/(protected)/(routes)/catalogue");
+      router.back();
     } catch (error) {
       console.error(error);
     }

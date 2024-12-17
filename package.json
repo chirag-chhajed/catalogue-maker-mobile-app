@@ -88,6 +88,7 @@
     "react-native-svg": "15.8.0",
     "react-native-web": "~0.19.10",
     "react-redux": "^9.2.0",
+    "sonner-native": "^0.16.2",
     "tailwind-merge": "^2.5.5",
     "zod": "^3.24.1"
   },
