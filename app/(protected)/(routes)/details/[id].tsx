@@ -1,6 +1,7 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
 import { Dimensions, View } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 
@@ -21,7 +22,7 @@ import { type ImageType, useGetCatalogItemsQuery } from "~/store/features/api";
 // }));
 
 const DetailsPage = () => {
-  const { id } = useLocalSearchParams<{ id: number }>();
+  const { id } = useLocalSearchParams();
   const { width, height } = Dimensions.get("window");
   const { data, isLoading } = useGetCatalogItemsQuery(
     { id },
@@ -29,14 +30,23 @@ const DetailsPage = () => {
       skip: !id,
     },
   );
-  console.log(data, id);
+  const rearrangedData = useMemo(() => {
+    const matchIndex = data?.items.findIndex((item) => item.id === id);
+    if (matchIndex === -1) return data?.items;
+
+    const beforeMatch = data?.items.slice(0, matchIndex);
+    const afterMatch = data?.items.slice(matchIndex + 1);
+    const matchItem = data?.items[matchIndex];
+
+    return [matchItem, ...afterMatch, ...beforeMatch];
+  }, [id]);
   if (isLoading) {
     return <Text>Loading</Text>;
   }
   return (
     <View style={{ flex: 1, width, height }}>
       <FlashList
-        data={data?.items}
+        data={rearrangedData}
         estimatedItemSize={width}
         estimatedListSize={{ height, width }}
         renderItem={({ item }) => (
@@ -56,13 +66,11 @@ const Slide = ({
   name,
   description,
   price,
-  id,
 }: {
   images: ImageType[];
   name: string;
   description: string;
   price: number;
-  id: number;
 }) => {
   const { width, height } = Dimensions.get("window");
 

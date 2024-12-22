@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { Text, View, TextInput, Pressable, ScrollView } from "react-native";
+import { toast } from "sonner-native";
 import { z } from "zod";
 
+import { Button } from "~/components/ui/button";
 import { useCreateCatalogItemMutation } from "~/store/features/api";
 import { useGetImages } from "~/store/hooks";
 
@@ -21,7 +24,7 @@ export default function CreateItemForm() {
       .max(500, "Description must be maximum of 500 characters")
       .optional(),
     price: z.coerce
-      .number()
+      .number({ message: "Enter a valid price" })
       .positive("Price must be greater than 0")
       .multipleOf(0.01, "Price can only have up to 2 decimal places")
       .min(0.01, "Minimum price is 0.01"),
@@ -40,19 +43,24 @@ export default function CreateItemForm() {
   const images = useGetImages();
   console.log(isLoading, "loading");
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      const formData = new FormData();
+    console.log("submitting", data);
+    const formData = new FormData();
+    for (const image of images) {
+      formData.append("images", image);
+    }
+    formData.append("name", data.name);
+    formData.append("description", data.description || "");
+    formData.append("price", data.price);
 
-      for (const image of images) {
-        formData.append("images", image);
-      }
-      formData.append("name", data.name);
-      formData.append("description", data.description || "");
-      formData.append("price", data.price);
-      const res = await create({ id: Number(id), formData }).unwrap();
-      console.log(res);
-      router.back();
-    } catch (error) {}
+    toast.promise(create({ id, formData }), {
+      success: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.back();
+        return "Item created successfully";
+      },
+      loading: "Creating Item...",
+      error: "Failed to create Item",
+    });
   };
   return (
     <ScrollView
@@ -65,7 +73,7 @@ export default function CreateItemForm() {
         <View className="mb-8 w-full flex-row flex-wrap justify-center gap-2">
           {images.map((url, index) => (
             <Image
-              key={`image-${index}`}
+              key={url.uri}
               source={url.uri}
               style={{ height: 125, width: 125 }}
               className="rounded-lg"
@@ -163,15 +171,14 @@ export default function CreateItemForm() {
                 )}
               />
 
-              <Pressable
+              <Button
                 onPress={form.handleSubmit(handleSubmit)}
-                disabled={isLoading}
-                className="mt-4 w-full rounded-md bg-blue-600 py-3"
+                className="di mt-4 w-full rounded-md bg-blue-600 py-3 disabled:bg-gray-400"
               >
                 <Text className="text-center font-semibold text-white">
                   Create Item
                 </Text>
-              </Pressable>
+              </Button>
             </View>
           </View>
         </FormProvider>

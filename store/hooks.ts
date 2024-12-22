@@ -31,9 +31,9 @@ export const useOrganizationIdSelector = () => {
 
   useEffect(() => {
     if (!organizationId) {
-      const storedId = storage.getNumber("user_preferred_org");
-      console.log("storedId", storedId);
-      if (typeof storedId === "number") {
+      const storedId = storage.getString("user_preferred_org");
+      console.log("storedId", storedId), typeof storedId === "string";
+      if (typeof storedId === "string") {
         changeOrganizationId(storedId);
       } else {
         clearOrganizationId();

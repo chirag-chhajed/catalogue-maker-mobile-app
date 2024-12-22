@@ -1,9 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Text, View, TextInput, Pressable, Image } from "react-native";
+import { Text, View, TextInput } from "react-native";
+import { toast } from "sonner-native";
 import * as z from "zod";
 
+import { Button } from "~/components/ui/button";
 import { useCreateOrgMutation } from "~/store/features/api";
 
 export default function CreateForm() {
@@ -31,13 +35,15 @@ export default function CreateForm() {
   });
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      const resp = await create(data).unwrap();
-      console.log(resp);
-      router.replace("/(protected)/(routes)/organization");
-    } catch (error) {
-      console.error(error);
-    }
+    toast.promise(create(data).unwrap(), {
+      loading: "Creating organization...",
+      success: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.replace("/(protected)/(routes)/organization");
+        return "Organization created successfully";
+      },
+      error: "Failed to create organization",
+    });
   };
 
   return (
@@ -45,12 +51,10 @@ export default function CreateForm() {
       {/* Placeholder Image */}
       <View className="mb-8 items-center">
         <Image
-          source={{
-            uri: "https://picsum.photos/192",
-          }}
+          source={"https://picsum.photos/192"}
           style={{ height: 192, width: 192 }}
           className="h-48 w-48"
-          resizeMode="contain"
+          contentFit="cover"
         />
       </View>
 
@@ -121,15 +125,15 @@ export default function CreateForm() {
               }}
             />
 
-            <Pressable
+            <Button
               onPress={form.handleSubmit(handleSubmit)}
               className="mt-4 w-full rounded-md bg-blue-600 py-3"
-              disabled={isLoading}
+              disabled={form.formState.isSubmitting || isLoading}
             >
               <Text className="text-center font-semibold text-white">
                 Create Organization
               </Text>
-            </Pressable>
+            </Button>
           </View>
         </View>
       </FormProvider>

@@ -1,10 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { router } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Text, View, TextInput, Pressable, Image } from "react-native";
+import { Text, View, TextInput } from "react-native";
+import { toast } from "sonner-native";
 import * as z from "zod";
-
+import * as Haptics from "expo-haptics";
 import { useCreateCatalogMutation } from "~/store/features/api";
+import { Button } from "~/components/ui/button";
+import { Image } from "expo-image";
 
 export default function CreateCatalogForm() {
   const schema = z.object({
@@ -29,26 +32,27 @@ export default function CreateCatalogForm() {
     },
     mode: "onBlur",
   });
+
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    try {
-      const resp = await create(data).unwrap();
-      console.log(resp);
-      router.back();
-    } catch (error) {
-      console.error(error);
-    }
+    toast.promise(create(data).unwrap(), {
+      success: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.replace("/(protected)/(routes)/catalogue");
+        return "Catalogue created successfully";
+      },
+      error: "Failed to create Catalogue",
+      loading: "Creating Catalogue...",
+    });
   };
 
   return (
     <View className="flex-1 items-center justify-center p-6">
       <View className="mb-8 items-center">
         <Image
-          source={{
-            uri: "https://picsum.photos/192",
-          }}
+          source={"https://picsum.photos/192"}
           style={{ height: 192, width: 192 }}
           className="h-48 w-48"
-          resizeMode="contain"
+          contentFit="contain"
         />
       </View>
       <FormProvider {...form}>
@@ -116,15 +120,15 @@ export default function CreateCatalogForm() {
                 );
               }}
             />
-            <Pressable
+            <Button
               onPress={form.handleSubmit(handleSubmit)}
-              disabled={isLoading}
+              disabled={form.formState.isSubmitting || isLoading}
               className="mt-4 w-full rounded-md bg-blue-600 py-3"
             >
               <Text className="text-center font-semibold text-white">
                 Create Catalogue
               </Text>
-            </Pressable>
+            </Button>
           </View>
         </View>
       </FormProvider>

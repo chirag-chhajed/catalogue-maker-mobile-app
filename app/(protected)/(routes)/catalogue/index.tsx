@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { View, Pressable } from "react-native";
+import { toast } from "sonner-native";
 
 import img from "~/assets/266.png";
 import {
@@ -14,27 +15,22 @@ import {
 } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
-import { useGetCatalogQuery } from "~/store/features/api";
+import { useGetCatalogQuery, useLogoutMutation } from "~/store/features/api";
 
 type CardItem = {
-  id: number;
+  id: string;
   name: string;
   description: string;
 };
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 
 const Index = () => {
-  // const [cataloguesExist, setCataloguesExist] = useState(true); // Changed to true for testing
   const [searchQuery, setSearchQuery] = useState("");
   const [isListView, setIsListView] = useState(true);
-  const { data } = useGetCatalogQuery();
-  console.log(isListView);
+  const { data, refetch, isLoading } = useGetCatalogQuery();
+  const [logout] = useLogoutMutation();
   const cataloguesExist = (data?.length ?? 0) > 0;
-  // const dummyData = [1, 2, 3, 4].map((item, index) => ({
-  //   id: index,
-  //   title: `Catalogue ${item}`,
-  //   description: `Description for catalogue ${item}`,
-  // }));
+
   return (
     <View className="flex-1">
       {!cataloguesExist ? (
@@ -107,6 +103,8 @@ const Index = () => {
                 isListView ? <View className="h-2" /> : <View className="h-4" />
               }
               showsVerticalScrollIndicator={false}
+              onRefresh={refetch}
+              refreshing={isLoading}
               renderItem={({ item }) =>
                 isListView ? (
                   <CompactCard item={item} />
@@ -119,7 +117,9 @@ const Index = () => {
                       style={{
                         height: 200,
                         backgroundColor:
-                          pastelColors[item.id % pastelColors.length],
+                          pastelColors[
+                            Math.floor(Math.random() * pastelColors.length)
+                          ],
                       }}
                     />
                     <Link
@@ -161,7 +161,8 @@ const CompactCard = ({ item }: { item: CardItem }) => (
       style={{
         width: 100,
         height: 100,
-        backgroundColor: pastelColors[item.id % pastelColors.length],
+        backgroundColor:
+          pastelColors[Math.floor(Math.random() * pastelColors.length) - 1],
       }}
     />
     <Link

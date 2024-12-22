@@ -1,4 +1,5 @@
 import {
+  openCamera,
   openPicker,
   type Config,
 } from "@baronha/react-native-multiple-image-picker";
@@ -12,6 +13,7 @@ import { useState } from "react";
 import { View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
+import { toast } from "sonner-native";
 
 import img from "~/assets/266.png";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
@@ -29,7 +31,7 @@ import { useDispatchImages } from "~/store/hooks";
 
 // Add this type definition
 type CardItem = {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   price: string | null;
@@ -74,13 +76,13 @@ const config: Config = {
   },
 };
 export default function DetailsScreen() {
-  const { id, title } = useLocalSearchParams<{ id: number; title: string }>();
+  const { id, title } = useLocalSearchParams();
   const [image, setImage] = useState<string | null>(null);
   const [isListView, setIsListView] = useState(true);
   const [itemsExist, setItemsExist] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { setImages } = useDispatchImages();
-  const { data } = useGetCatalogItemsQuery(
+  const { data, isLoading, refetch } = useGetCatalogItemsQuery(
     { id },
     {
       skip: !id,
@@ -95,29 +97,6 @@ export default function DetailsScreen() {
     right: 12,
   };
 
-  const MOCK_CARDS: CardItem[] = Array.from({ length: 20 }, (_, i) => ({
-    id: i + 1,
-    title: `Product ${i + 1}`,
-    description:
-      "A brief description of the product with more details about features",
-    price: Math.floor(Math.random() * 10000) + 1000,
-    image: `https://picsum.photos/seed/${i}/800/600`,
-  }));
-
-  const pickCameraImage = async () => {
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 1,
-      allowsMultipleSelection: true,
-      mediaTypes: "images",
-      selectionLimit: 5,
-      cameraType: ImagePicker.CameraType.back,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-    }
-  };
-
   const pickDocImage = async () => {
     try {
       const result = await openPicker(config);
@@ -129,17 +108,9 @@ export default function DetailsScreen() {
         })),
       );
       router.push(`/(protected)/(routes)/catalogue/create-item-form?id=${id}`);
-    } catch (error) {}
-    // const doc = await DocumentPicker.getDocumentAsync({
-    //   multiple: true,
-    //   type: ["image/*"],
-    // });
-    // console.log(doc);
-    // if (!doc.canceled && doc.assets.length <= 5) {
-    //   setImage(doc.assets[0].uri);
-    // } else if (doc.assets.length > 5) {
-    //   Alert.alert("Limit Exceeded", "You can only select up to 5 images.");
-    // }
+    } catch (error) {
+      toast.error("Some Error occured");
+    }
   };
 
   return (
@@ -318,7 +289,7 @@ export default function DetailsScreen() {
   );
 }
 
-const CompactCard = ({ item, id }: { item: CardItem; id: number }) => (
+const CompactCard = ({ item, id }: { item: CardItem; id: string }) => (
   <Card className="flex-row overflow-hidden rounded-lg bg-white shadow-sm">
     <Image
       style={{ width: 100, height: 100 }}

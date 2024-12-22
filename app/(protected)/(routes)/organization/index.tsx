@@ -56,7 +56,7 @@ const Index = () => {
                 <TouchableOpacity
                   onPress={() => {
                     changeOrganizationId(org.id);
-                    router.push("/(protected)/(routes)/catalogue");
+                    router.replace("/(protected)/(routes)/catalogue");
                   }}
                   key={org.id}
                 >

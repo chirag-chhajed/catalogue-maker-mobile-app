@@ -1,12 +1,8 @@
-import { Feather } from "@expo/vector-icons";
 import { Stack } from "expo-router";
-import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
-import { useDrawerHelper } from "~/lib/useDrawerHelper";
 
 const CatalogueLayout = () => {
-  const { openDrawer } = useDrawerHelper();
   return (
     <Stack
     // screenOptions={{
@@ -41,6 +37,14 @@ const CatalogueLayout = () => {
         options={{
           presentation: "modal",
           headerTitle: "Create Catalogue",
+          headerShadowVisible: false,
+        }}
+      />
+      <Stack.Screen
+        name="create-item-form"
+        options={{
+          presentation: "modal",
+          headerTitle: "Create Item",
           headerShadowVisible: false,
         }}
       />

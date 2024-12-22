@@ -3,10 +3,10 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 type UserAuthState = {
   accessToken: string | null;
   user: {
-    id: number;
+    id: string;
     email: string;
     name: string;
-    organizationId?: number;
+    organizationId?: string;
     role?: "admin" | "editor" | "viewer";
   } | null;
 };

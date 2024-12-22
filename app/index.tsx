@@ -3,7 +3,6 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, useRouter } from "expo-router";
 import { View } from "react-native";
-import { useMMKVNumber } from "react-native-mmkv";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "~/components/ui/button";

@@ -1,88 +1,15 @@
 import {
-  BaseQueryFn,
+  type BaseQueryFn,
   createApi,
-  FetchArgs,
+  type FetchArgs,
   fetchBaseQuery,
-  FetchBaseQueryError,
+  type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
 
 import { changeState, clearState } from "../hello";
+import { clearOrganizationId } from "../organizationId";
 
 import type { RootState } from "~/store/store";
-
-export type BasePayload = {
-  id: number;
-  email: string;
-  name: string;
-};
-
-export type OrgPayload = {
-  organizationId: number;
-  role: "admin" | "editor" | "viewer";
-};
-
-type RefreshArgs = {
-  organizationId?: number;
-};
-
-type LoginResponse = {
-  accessToken: string;
-  user: BasePayload;
-};
-type LoginArg = { name: string; email: string };
-type CreateOrgResponse = {
-  description: string | null;
-  id: number;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: number;
-};
-type CreateOrgArg = {
-  name: string;
-  description?: string;
-};
-type GetOrgResponse = {
-  id: number;
-  name: string;
-  description: string | null;
-  role: "admin" | "editor" | "viewer";
-}[];
-
-type GetCatalogues = {
-  name: string;
-  description: string | null;
-  organizationId: number;
-  id: number;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: number;
-  deletedAt: Date | null;
-}[];
-export type ImageType = {
-  id: number;
-  imageUrl: string;
-  blurhash: string | null;
-};
-type GetCatalogItems = {
-  catalogueDetail: {
-    description: string | null;
-    id: number;
-    name: string;
-    createdAt: Date;
-    updatedAt: Date;
-    createdBy: number;
-    organizationId: number;
-    deletedAt: Date | null;
-  };
-  items: {
-    id: number;
-    name: string;
-    description: string | null;
-    price: string | null;
-    images: ImageType[];
-  }[];
-};
 
 const baseQuery = fetchBaseQuery({
   baseUrl: "https://605l6z6z-3434.inc1.devtunnels.ms/api",
@@ -125,6 +52,7 @@ const baseQueryWithReauth: BaseQueryFn<
       result = await baseQuery(args, api, extraOptions);
     } else {
       api.dispatch(clearState());
+      api.dispatch(clearOrganizationId());
     }
   }
   return result;
@@ -154,13 +82,31 @@ export const api = createApi({
         url: "/auth/refresh",
         params: { organizationId },
       }),
-      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+      async onQueryStarted(_args, { dispatch, queryFulfilled, getState }) {
         try {
           const { data } = await queryFulfilled;
+
           dispatch(
             changeState({ accessToken: data.accessToken, user: data.user }),
           );
         } catch (error) {}
+      },
+    }),
+    logout: builder.mutation<void, void>({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+      // Clear tokens on successful logout
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(clearState());
+          dispatch(clearOrganizationId());
+        } catch {
+          dispatch(clearState());
+          dispatch(clearOrganizationId());
+        }
       },
     }),
     createOrg: builder.mutation<CreateOrgResponse, CreateOrgArg>({
@@ -187,13 +133,13 @@ export const api = createApi({
       query: () => "/catalogue/",
       providesTags: ["Catalogue"],
     }),
-    getCatalogItems: builder.query<GetCatalogItems, { id: number }>({
+    getCatalogItems: builder.query<GetCatalogItems, { id: string }>({
       query: ({ id }) => `/catalogue/${id}`,
       providesTags: ["Item"],
     }),
     createCatalogItem: builder.mutation<
       void,
-      { id: number; formData: FormData }
+      { id: string; formData: FormData }
     >({
       query: ({ formData, id }) => ({
         method: "POST",
@@ -208,6 +154,7 @@ export const api = createApi({
 export const {
   useLoginMutation,
   useRefreshQuery,
+  useLogoutMutation,
   useCreateOrgMutation,
   useGetOrgsQuery,
   useCreateCatalogMutation,
@@ -215,3 +162,77 @@ export const {
   useGetCatalogItemsQuery,
   useCreateCatalogItemMutation,
 } = api;
+
+export type BasePayload = {
+  id: string;
+  email: string;
+  name: string;
+};
+
+export type OrgPayload = {
+  organizationId: string;
+  role: "admin" | "editor" | "viewer";
+};
+
+type RefreshArgs = {
+  organizationId?: string;
+};
+
+type LoginResponse = {
+  accessToken: string;
+  user: BasePayload;
+};
+type LoginArg = { name: string; email: string };
+type CreateOrgResponse = {
+  description: string | null;
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+};
+type CreateOrgArg = {
+  name: string;
+  description?: string;
+};
+type GetOrgResponse = {
+  id: number;
+  name: string;
+  description: string | null;
+  role: "admin" | "editor" | "viewer";
+}[];
+
+type GetCatalogues = {
+  name: string;
+  description: string | null;
+  organizationId: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  createdBy: string;
+  deletedAt: Date | null;
+}[];
+export type ImageType = {
+  id: string;
+  imageUrl: string;
+  blurhash: string | null;
+};
+type GetCatalogItems = {
+  catalogueDetail: {
+    description: string | null;
+    id: string;
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+    createdBy: string;
+    organizationId: string;
+    deletedAt: Date | null;
+  };
+  items: {
+    id: string;
+    name: string;
+    description: string | null;
+    price: string | null;
+    images: ImageType[];
+  }[];
+};
