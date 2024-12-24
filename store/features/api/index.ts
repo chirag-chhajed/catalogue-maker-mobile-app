@@ -50,6 +50,7 @@ const baseQueryWithReauth: BaseQueryFn<
         }),
       );
       result = await baseQuery(args, api, extraOptions);
+      console.log(refreshResult, result);
     } else {
       api.dispatch(clearState());
       api.dispatch(clearOrganizationId());
@@ -181,12 +182,14 @@ export const api = createApi({
         url: `/catalogue/items/${id}`,
         body: args,
       }),
+      invalidatesTags: ["Item"],
     }),
     deleteCatalogItem: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
         method: "DELETE",
         url: `/catalogue/delete-item/${id}`,
       }),
+      invalidatesTags: ["Item"],
     }),
   }),
 });
@@ -278,7 +281,7 @@ type GetCatalogItems = {
     id: string;
     name: string;
     description: string | null;
-    price: string | null;
+    price: string;
     images: ImageType[];
   }[];
 };

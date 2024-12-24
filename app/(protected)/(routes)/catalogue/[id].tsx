@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import { toast } from "sonner-native";
 import * as Haptics from "expo-haptics";
-import * as FileSystem from "expo-file-system";
 import img from "~/assets/266.png";
 import { Card, CardTitle } from "~/components/ui/card";
 import {
@@ -38,6 +37,7 @@ import { TextInput } from "react-native-gesture-handler";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 
 // Add this type definition
 type CardItem = {
@@ -86,30 +86,6 @@ const config: Config = {
   },
 };
 
-const downloadImagesToCache = async (
-  imageUrls: string[],
-): Promise<string[]> => {
-  try {
-    const downloadPromises = imageUrls.map(async (url) => {
-      const filename = url.split("/").pop();
-      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
-
-      const downloadResult = await FileSystem.downloadAsync(url, fileUri);
-
-      if (downloadResult.status !== 200) {
-        throw new Error(`Failed to download image: ${url}`);
-      }
-
-      return downloadResult.uri;
-    });
-
-    const localUrls = await Promise.all(downloadPromises);
-    return localUrls;
-  } catch (error) {
-    console.error("Error downloading images:", error);
-    throw error;
-  }
-};
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
 
@@ -294,7 +270,10 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
           onPress: () => {
             toast.promise(deleteItem({ id: item.id }).unwrap(), {
               loading: "Deleting...",
-              success: () => "Item deleted successfully",
+              success: () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                return "Item deleted successfully";
+              },
               error: "Failed to delete Item",
             });
           },
@@ -333,6 +312,7 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
           params: {
             id,
             title: item.name,
+            catalogueId: item.id,
           },
         }}
         className="min-w-0 flex-1"

@@ -162,7 +162,10 @@ const CompactCard = ({ item }: { item: CardItem }) => {
           onPress: () => {
             toast.promise(deleteCatalog({ id: item.id }).unwrap(), {
               loading: "Deleting...",
-              success: () => "Catalogue deleted successfully",
+              success: () => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                return "Catalogue deleted successfully";
+              },
               error: "Failed to delete catalogue",
             });
           },

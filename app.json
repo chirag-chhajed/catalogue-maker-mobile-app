@@ -26,6 +26,13 @@
         {
           "fonts": ["./assets/Geist.ttf", "./assets/GeistMono.ttf"]
         }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow Catalog Maker to access your photos.",
+          "savePhotosPermission": "Allow Catalog Maker to save photos."
+        }
       ]
     ],
     "experiments": {
@@ -45,7 +52,6 @@
       "infoPlist": {
         "NSPhotoLibraryAddUsageDescription": "Catalog Maker needs photo library permissions",
         "NSPhotoLibraryUsageDescription": "Catalog Maker needs photo library permissions",
-        // if you allow camera, you need to add this
         "NSCameraUsageDescription": "Catalog Maker needs to access your Camera"
       }
     },
