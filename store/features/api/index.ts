@@ -137,6 +137,24 @@ export const api = createApi({
       query: ({ id }) => `/catalogue/${id}`,
       providesTags: ["Item"],
     }),
+    deleteCatalog: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        method: "DELETE",
+        url: `/catalogue/${id}`,
+      }),
+      invalidatesTags: ["Catalogue"],
+    }),
+    updateCatalog: builder.mutation<void, CreateOrgArg & { id: string }>({
+      query: ({ name, description, id }) => ({
+        method: "PUT",
+        url: `/catalogue/${id}`,
+        body: {
+          name,
+          description,
+        },
+      }),
+      invalidatesTags: ["Catalogue"],
+    }),
     createCatalogItem: builder.mutation<
       void,
       { id: string; formData: FormData }
@@ -147,6 +165,28 @@ export const api = createApi({
         body: formData,
       }),
       invalidatesTags: ["Item"],
+    }),
+    updateCatalogItem: builder.mutation<
+      void,
+      {
+        id: string;
+        name: string;
+        description: string;
+        price: number;
+        catalogueId: string;
+      }
+    >({
+      query: ({ id, ...args }) => ({
+        method: "PUT",
+        url: `/catalogue/items/${id}`,
+        body: args,
+      }),
+    }),
+    deleteCatalogItem: builder.mutation<void, { id: string }>({
+      query: ({ id }) => ({
+        method: "DELETE",
+        url: `/catalogue/delete-item/${id}`,
+      }),
     }),
   }),
 });
@@ -161,6 +201,10 @@ export const {
   useGetCatalogQuery,
   useGetCatalogItemsQuery,
   useCreateCatalogItemMutation,
+  useDeleteCatalogMutation,
+  useUpdateCatalogMutation,
+  useUpdateCatalogItemMutation,
+  useDeleteCatalogItemMutation,
 } = api;
 
 export type BasePayload = {
@@ -213,6 +257,8 @@ type GetCatalogues = {
   deletedAt: Date | null;
 }[];
 export type ImageType = {
+  [x: string]: any;
+  url: any;
   id: string;
   imageUrl: string;
   blurhash: string | null;

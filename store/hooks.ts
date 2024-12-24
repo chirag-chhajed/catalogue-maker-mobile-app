@@ -63,3 +63,9 @@ export const useDispatchImages = () => {
     clearImages: () => dispatch(clearImages()),
   };
 };
+
+export const useUserState = () => {
+  const { user } = useAppSelector((state) => state.hello);
+
+  return user;
+};

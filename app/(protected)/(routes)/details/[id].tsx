@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import { Dimensions, View } from "react-native";
+import ImageModal from "react-native-image-modal";
 import Carousel from "react-native-reanimated-carousel";
 
 import { Text } from "~/components/ui/text";
@@ -46,7 +47,7 @@ const DetailsPage = () => {
   return (
     <View style={{ flex: 1, width, height }}>
       <FlashList
-        data={rearrangedData}
+        data={data?.items}
         estimatedItemSize={width}
         estimatedListSize={{ height, width }}
         renderItem={({ item }) => (

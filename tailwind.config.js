@@ -1,4 +1,4 @@
-const { hairlineWidth } = require("nativewind/theme");
+const { hairlineWidth, platformSelect } = require("nativewind/theme");
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -40,6 +40,12 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+      },
+      fontFamily: {
+        system: platformSelect({
+          default: "GeistMono",
+        }),
+        sans: ["GeistMono", "sans-serif"],
       },
       borderWidth: {
         hairline: hairlineWidth(),

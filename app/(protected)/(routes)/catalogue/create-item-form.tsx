@@ -10,6 +10,7 @@ import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { useCreateCatalogItemMutation } from "~/store/features/api";
 import { useGetImages } from "~/store/hooks";
+import ImageModal from "react-native-image-modal";
 
 export default function CreateItemForm() {
   const schema = z.object({
@@ -72,12 +73,22 @@ export default function CreateItemForm() {
         {/* Photo Grid */}
         <View className="mb-8 w-full flex-row flex-wrap justify-center gap-2">
           {images.map((url, index) => (
-            <Image
+            <ImageModal
               key={url.uri}
-              source={url.uri}
+              resizeMode="cover"
+              source={{ uri: url.uri }}
               style={{ height: 125, width: 125 }}
-              className="rounded-lg"
-              contentFit="cover"
+              renderImageComponent={({ source, resizeMode, style }) => (
+                <Image
+                  source={source}
+                  style={style}
+                  className="rounded-lg"
+                  contentFit={resizeMode}
+                />
+              )}
+              renderHeader={(close) => (
+                <Text className="text-white">Image {index + 1}</Text>
+              )}
             />
           ))}
         </View>
@@ -173,6 +184,7 @@ export default function CreateItemForm() {
 
               <Button
                 onPress={form.handleSubmit(handleSubmit)}
+                disabled={isLoading || form.formState.isSubmitting}
                 className="di mt-4 w-full rounded-md bg-blue-600 py-3 disabled:bg-gray-400"
               >
                 <Text className="text-center font-semibold text-white">
