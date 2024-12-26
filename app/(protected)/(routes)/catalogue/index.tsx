@@ -27,7 +27,6 @@ import { hasPermission } from "~/lib/role";
 import {
   useDeleteCatalogMutation,
   useGetCatalogQuery,
-  useLogoutMutation,
   useUpdateCatalogMutation,
 } from "~/store/features/api";
 import { useUserState } from "~/store/hooks";
@@ -42,10 +41,10 @@ const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, refetch, isLoading } = useGetCatalogQuery();
-  const [logout] = useLogoutMutation();
+
   const cataloguesExist = (data?.length ?? 0) > 0;
   const user = useUserState();
-
+  console.log(user);
   return (
     <View className="flex-1">
       {!cataloguesExist ? (

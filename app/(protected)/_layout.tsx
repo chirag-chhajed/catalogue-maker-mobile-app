@@ -1,6 +1,4 @@
 import { Redirect, Stack } from "expo-router";
-import { Drawer } from "expo-router/drawer";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAppSelector } from "~/store/hooks";
 
 const ProtectedLayout = () => {

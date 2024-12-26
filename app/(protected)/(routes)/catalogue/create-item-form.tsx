@@ -107,7 +107,7 @@ export default function CreateItemForm() {
                 control={form.control}
                 name="name"
                 render={({
-                  field: { onChange, onBlur, value },
+                  field: { onChange, onBlur, value, disabled },
                   fieldState: { error },
                 }) => (
                   <View className="mb-4">
@@ -120,6 +120,7 @@ export default function CreateItemForm() {
                       onChangeText={onChange}
                       onBlur={onBlur}
                       placeholder="Enter item name"
+                      editable={disabled}
                     />
                     <Text className="mb-1 text-sm text-red-500">
                       {error?.message}
@@ -132,7 +133,7 @@ export default function CreateItemForm() {
                 control={form.control}
                 name="description"
                 render={({
-                  field: { onChange, onBlur, value },
+                  field: { onChange, onBlur, value, disabled },
                   fieldState: { error },
                 }) => (
                   <View className="mb-2">
@@ -148,6 +149,7 @@ export default function CreateItemForm() {
                       multiline
                       numberOfLines={3}
                       textAlignVertical="top"
+                      editable={disabled}
                     />
                     <Text className="mb-1 text-sm text-red-500">
                       {error?.message}
@@ -160,7 +162,7 @@ export default function CreateItemForm() {
                 control={form.control}
                 name="price"
                 render={({
-                  field: { onChange, onBlur, value },
+                  field: { onChange, onBlur, value, disabled },
                   fieldState: { error },
                 }) => (
                   <View className="mb-2">
@@ -174,6 +176,7 @@ export default function CreateItemForm() {
                       onBlur={onBlur}
                       placeholder="Enter price"
                       keyboardType="numeric"
+                      editable={disabled}
                     />
                     <Text className="mb-1 text-sm text-red-500">
                       {error?.message}

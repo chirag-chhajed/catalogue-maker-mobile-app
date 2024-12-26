@@ -1,6 +1,6 @@
 import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
-import { Image, ImageContentFit } from "expo-image";
+import { Image, type ImageContentFit } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import {
@@ -14,6 +14,7 @@ import {
 import ImageModal from "react-native-image-modal";
 import Carousel from "react-native-reanimated-carousel";
 import Share from "react-native-share";
+import { toast } from "sonner-native";
 
 import { Text } from "~/components/ui/text";
 import {
@@ -123,7 +124,7 @@ const Slide = ({
                     onPress={async () => {
                       try {
                         await downloadImagesToGallery([item.imageUrl]);
-                        Alert.alert("Success", "Image saved to gallery");
+                        toast.success("Image downloaded to gallery");
                       } catch (error) {
                         Alert.alert("Error", "Failed to save image");
                       }
@@ -187,9 +188,11 @@ const Slide = ({
                 await downloadImagesToGallery(
                   images.map((img) => img.imageUrl),
                 );
-                Alert.alert("Success", "Images downloaded to gallery");
-              } catch (error) {
-                Alert.alert("Error", "Failed to download images");
+                toast.success("Images downloaded to gallery");
+
+                // Alert.alert("Success", "Images downloaded to gallery");
+              } catch {
+                // Alert.alert("Error", "Failed to download images");
               }
             }}
             className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"

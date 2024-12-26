@@ -1,20 +1,16 @@
+import { Feather } from "@expo/vector-icons";
+import { Link } from "expo-router";
 import { Stack } from "expo-router";
+import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
 
 const CatalogueLayout = () => {
   return (
     <Stack
-    // screenOptions={{
-    //   headerRight: () => (
-    //     <Pressable onPress={openDrawer} className=" p-3 ">
-    //       {/* <Link href="/(protected)/catalogue/create-catalog"> */}
-    //       <Feather name="menu" size={24} />
-    //       {/* </Link> */}
-    //     </Pressable>
-    //   ),
-    //   headerShadowVisible: false,
-    // }}
+      screenOptions={{
+        headerShadowVisible: false,
+      }}
     >
       <Stack.Screen
         name="index"
@@ -24,6 +20,13 @@ const CatalogueLayout = () => {
           ),
           headerTitle: "",
           headerShadowVisible: false,
+          headerRight: () => (
+            <Pressable className=" p-3 ">
+              <Link href="/(protected)/(routes)/settings/profile">
+                <Feather name="settings" size={24} />
+              </Link>
+            </Pressable>
+          ),
         }}
       />
       <Stack.Screen

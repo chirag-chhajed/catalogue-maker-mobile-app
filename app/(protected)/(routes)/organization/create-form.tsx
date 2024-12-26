@@ -77,7 +77,7 @@ export default function CreateForm() {
                 fieldState: { error },
               }) => {
                 return (
-                  <View>
+                  <Visew>
                     <Text className="mb-1 text-sm font-medium text-gray-700">
                       Name
                     </Text>
@@ -91,7 +91,7 @@ export default function CreateForm() {
                     <Text className="mb-1 text-sm text-red-500">
                       {error?.message}
                     </Text>
-                  </View>
+                  </Visew>
                 );
               }}
             />
