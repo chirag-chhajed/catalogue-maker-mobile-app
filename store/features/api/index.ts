@@ -222,6 +222,7 @@ export const api = createApi({
         organizationName: string;
         organizationId: string;
         role: "editor" | "viewer";
+        inviteCode: string;
       },
       { inviteCode: string }
     >({

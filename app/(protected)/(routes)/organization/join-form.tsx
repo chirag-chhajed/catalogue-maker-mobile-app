@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { router } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Text, View, TextInput, Pressable, Image } from "react-native";
+import { Text, View, TextInput, Pressable, Image, Alert } from "react-native";
 import { toast } from "sonner-native";
 import * as z from "zod";
+
 import {
   useAcceptInviteMutation,
   useInviteStatusMutation,
@@ -16,6 +18,7 @@ export default function JoinForm() {
       .length(10, "Invite code must be 10 characters"),
   });
   const [inviteStatus, { isLoading }] = useInviteStatusMutation();
+  const [hello] = useAcceptInviteMutation();
   type schemaInferType = z.infer<typeof schema>;
 
   const form = useForm<schemaInferType>({
@@ -28,12 +31,77 @@ export default function JoinForm() {
 
   const handleSubmit = async (data: schemaInferType) => {
     toast.promise(inviteStatus(data).unwrap(), {
-      success: () => "hello",
+      success: (res) => {
+        showJoinAlert({
+          organizationName: res.organizationName,
+          role: res.role,
+          inviteCode: res.inviteCode,
+        });
+        return "";
+      },
       error: ({ data }) => {
         return data?.message ?? "Something went wrong";
       },
       loading: "Loading...",
     });
+  };
+
+  const showJoinAlert = ({
+    organizationName,
+    role,
+    inviteCode,
+  }: {
+    organizationName: string;
+    role: string;
+    inviteCode: string;
+  }) => {
+    Alert.alert(
+      "Join Organization",
+      `Do you want to join ${organizationName} as ${role}?`,
+      [
+        {
+          text: "Reject",
+          style: "destructive",
+          onPress: () => {
+            toast.promise(
+              hello({
+                joining: false,
+                inviteCode,
+              }),
+              {
+                loading: "Rejecting...",
+                success: () => {
+                  router.back();
+                  return "Rejected";
+                },
+                error: () => "Failed to reject",
+              },
+            );
+          },
+        },
+        {
+          text: "Accept",
+          style: "default",
+          onPress: () => {
+            toast.promise(
+              hello({
+                joining: true,
+                inviteCode,
+              }),
+              {
+                loading: "Accepting...",
+                success: () => {
+                  router.back();
+                  return "Accepted";
+                },
+                error: () => "Failed to Accept",
+              },
+            );
+          },
+        },
+      ],
+      { cancelable: true },
+    );
   };
 
   return (
