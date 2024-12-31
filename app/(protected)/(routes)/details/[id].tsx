@@ -21,7 +21,8 @@ import {
   downloadImagesToCache,
   downloadImagesToGallery,
 } from "~/lib/downloadImagesToCache";
-import { type ImageType, useGetCatalogItemsQuery } from "~/store/features/api";
+import type { ImageType } from "~/store/features/api";
+import { useGetCatalogItemsQuery } from "~/store/features/api/catalogueApi";
 
 const DetailsPage = () => {
   const { id, catalogueId } = useLocalSearchParams();
@@ -236,29 +237,8 @@ const Slide = ({
         <Text className="mt-2 text-lg font-semibold text-green-600">
           ₹{price}
         </Text>
-        <Text className="mt-3 flex-wrap text-base leading-6 text-gray-600">
-          {description} Lorem ipsum dolor sit amet, consectetur adipisicing
-          elit. Voluptates, consequatur. Nihil molestias voluptatibus iste
-          minus? Adipisci, ipsam. Obcaecati ea modi, architecto autem explicabo
-          tempora maiores debitis ad sed minima ipsa, repellendus consequuntur
-          nobis in id earum reprehenderit adipisci nesciunt? Vitae deleniti
-          optio labore dignissimos quod, sapiente cumque nesciunt qui eos
-          officia repudiandae explicabo enim excepturi. Officiis quod tenetur
-          eum modi veritatis, facere ipsam fuga assumenda, optio obcaecati
-          saepe, id neque dolores incidunt molestiae recusandae temporibus ipsa
-          tempora. At a labore neque, officia eius, dolorem molestiae aliquam
-          vel, pariatur harum molestias quos fugit cum temporibus vero. Quis
-          architecto facilis error ex quidem, soluta ullam deleniti? Saepe
-          voluptatum delectus aliquam natus quam incidunt cupiditate. Doloremque
-          at maiores eius harum expedita id corrupti veniam sed non obcaecati
-          eligendi ipsum est assumenda optio inventore cumque, et ut cupiditate
-          autem omnis consequuntur, ipsam ea voluptatum! Magni quasi iste
-          necessitatibus dignissimos nesciunt maiores at optio sit voluptas, ea
-          consequatur minus nam odit? Debitis illo esse rerum, voluptates quos
-          voluptatum tenetur quis sunt vero expedita minima, ea maiores sequi
-          distinctio error? Omnis sed, ratione iusto ipsam tenetur nulla nobis
-          praesentium sit quia, doloremque id. Incidunt blanditiis mollitia,
-          odit a similique quis in quas vel saepe quod ipsa!
+        <Text className="mt-3 flex-wrap font-mono text-base leading-6 text-gray-600">
+          {description}
         </Text>
       </View>
     </ScrollView>

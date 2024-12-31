@@ -8,7 +8,7 @@ import { toast } from "sonner-native";
 import * as z from "zod";
 
 import { Button } from "~/components/ui/button";
-import { useCreateOrgMutation } from "~/store/features/api";
+import { useCreateOrgMutation } from "~/store/features/api/organizationApi";
 
 export default function CreateForm() {
   const schema = z.object({
@@ -39,7 +39,7 @@ export default function CreateForm() {
       loading: "Creating organization...",
       success: () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.replace("/(protected)/(routes)/organization");
+        router.back();
         return "Organization created successfully";
       },
       error: "Failed to create organization",
@@ -77,7 +77,7 @@ export default function CreateForm() {
                 fieldState: { error },
               }) => {
                 return (
-                  <Visew>
+                  <View>
                     <Text className="mb-1 text-sm font-medium text-gray-700">
                       Name
                     </Text>
@@ -91,7 +91,7 @@ export default function CreateForm() {
                     <Text className="mb-1 text-sm text-red-500">
                       {error?.message}
                     </Text>
-                  </Visew>
+                  </View>
                 );
               }}
             />

@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import {
   useCreateInvitationMutation,
   useGetInvitationsQuery,
-} from "~/store/features/api";
+} from "~/store/features/api/invitationApi";
 
 const Invitations = () => {
   const [role, setRole] = useState<"editor" | "viewer">("editor");
@@ -59,15 +59,17 @@ const Invitations = () => {
         <Text className="mb-4 text-xl font-bold text-gray-900">
           Active Invitations
         </Text>
-        <FlashList
-          data={invitations}
-          renderItem={({ item }) => <InvitationCard item={item} />}
-          estimatedItemSize={100}
-          ItemSeparatorComponent={() => <View className="h-2" />}
-          contentContainerClassName="pb-4"
-          refreshing={refreshing}
-          onRefresh={refetch}
-        />
+        {invitations?.length > 0 ? (
+          <FlashList
+            data={invitations}
+            renderItem={({ item }) => <InvitationCard item={item} />}
+            estimatedItemSize={100}
+            ItemSeparatorComponent={() => <View className="h-2" />}
+            contentContainerClassName="pb-4"
+            refreshing={refreshing}
+            onRefresh={refetch}
+          />
+        ) : null}
       </View>
     </View>
   );

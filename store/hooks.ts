@@ -3,13 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { storage } from "./storage";
 
+import { clearImages, setImages } from "~/store/features/imageSlice";
 import {
   changeOrganizationId,
   clearOrganizationId,
 } from "~/store/features/organizationId";
 import type { AppDispatch, RootState } from "~/store/store";
-import { type Result } from "@baronha/react-native-multiple-image-picker";
-import { clearImages, setImages } from "./features/imageSlice";
 
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 export const useAppSelector = useSelector.withTypes<RootState>();
@@ -18,7 +17,7 @@ export const useOrganitionIdDispatch = () => {
   const dispatch = useAppDispatch();
 
   return {
-    changeOrganizationId: (orgId: number) =>
+    changeOrganizationId: (orgId: string) =>
       dispatch(changeOrganizationId(orgId)),
     clearOrganizationId: () => dispatch(clearOrganizationId()),
   };
@@ -32,7 +31,6 @@ export const useOrganizationIdSelector = () => {
   useEffect(() => {
     if (!organizationId) {
       const storedId = storage.getString("user_preferred_org");
-      console.log("storedId", storedId), typeof storedId === "string";
       if (typeof storedId === "string") {
         changeOrganizationId(storedId);
       } else {
@@ -46,7 +44,6 @@ export const useOrganizationIdSelector = () => {
 
 export const useGetImages = () => {
   const images = useAppSelector((state) => state.image);
-  // console.log(images);
   return images;
 };
 

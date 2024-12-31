@@ -1,13 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { Text, View, TextInput } from "react-native";
 import { toast } from "sonner-native";
 import * as z from "zod";
-import * as Haptics from "expo-haptics";
-import { useCreateCatalogMutation } from "~/store/features/api";
+
 import { Button } from "~/components/ui/button";
-import { Image } from "expo-image";
+import { useCreateCatalogMutation } from "~/store/features/api/catalogueApi";
 
 export default function CreateCatalogForm() {
   const schema = z.object({
@@ -49,7 +50,7 @@ export default function CreateCatalogForm() {
     <View className="flex-1 items-center justify-center p-6">
       <View className="mb-8 items-center">
         <Image
-          source={"https://picsum.photos/192"}
+          source="https://picsum.photos/192"
           style={{ height: 192, width: 192 }}
           className="h-48 w-48"
           contentFit="contain"

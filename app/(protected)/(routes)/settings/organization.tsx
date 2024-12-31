@@ -14,7 +14,8 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
-import { api, useGetOrgsQuery } from "~/store/features/api";
+import { api } from "~/store/features/api";
+import { useGetOrgsQuery } from "~/store/features/api/organizationApi";
 import { useOrganitionIdDispatch } from "~/store/hooks";
 import { store } from "~/store/store";
 
@@ -44,47 +45,49 @@ const Organization = () => {
       ) : (
         <ScrollView className="mb-4 flex-1">
           <View className="flex-1">
-            <FlashList
-              data={organizations}
-              estimatedItemSize={150}
-              contentContainerStyle={{ padding: 16 }}
-              renderItem={({ item: org }) => (
-                <TouchableOpacity
-                  onPress={() => {
-                    store.dispatch(api.util.resetApiState());
-                    changeOrganizationId(org.id);
-                    router.dismissAll();
-                    router.replace("/(protected)/(routes)/catalogue");
-                  }}
-                  key={org.id}
-                >
-                  <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
-                    <View>
-                      <CardHeader>
-                        <CardTitle>{org.name}</CardTitle>
-                        <CardDescription>{org.description}</CardDescription>
-                      </CardHeader>
+            {organizations?.length > 0 ? (
+              <FlashList
+                data={organizations}
+                estimatedItemSize={150}
+                contentContainerStyle={{ padding: 16 }}
+                renderItem={({ item: org }) => (
+                  <TouchableOpacity
+                    onPress={() => {
+                      store.dispatch(api.util.resetApiState());
+                      changeOrganizationId(org.id);
+                      router.dismissAll();
+                      router.replace("/(protected)/(routes)/catalogue");
+                    }}
+                    key={org.id}
+                  >
+                    <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
+                      <View>
+                        <CardHeader>
+                          <CardTitle>{org.name}</CardTitle>
+                          <CardDescription>{org.description}</CardDescription>
+                        </CardHeader>
 
-                      <CardFooter>
-                        <Badge
-                          variant={
-                            org.role === "admin" ? "default" : "secondary"
-                          }
-                        >
-                          <Text className="capitalize">{org.role}</Text>
-                        </Badge>
-                      </CardFooter>
-                    </View>
-                    <CardContent>
-                      <Image
-                        source="https://picsum.photos/80"
-                        style={{ height: 80, width: 80, borderRadius: 40 }}
-                      />
-                    </CardContent>
-                  </Card>
-                </TouchableOpacity>
-              )}
-            />
+                        <CardFooter>
+                          <Badge
+                            variant={
+                              org.role === "admin" ? "default" : "secondary"
+                            }
+                          >
+                            <Text className="capitalize">{org.role}</Text>
+                          </Badge>
+                        </CardFooter>
+                      </View>
+                      <CardContent>
+                        <Image
+                          source="https://picsum.photos/80"
+                          style={{ height: 80, width: 80, borderRadius: 40 }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </TouchableOpacity>
+                )}
+              />
+            ) : null}
           </View>
         </ScrollView>
       )}

@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
-import { useGetOrgsQuery } from "~/store/features/api";
+import { useGetOrgsQuery } from "~/store/features/api/organizationApi";
 import { useOrganitionIdDispatch } from "~/store/hooks";
 
 const Index = () => {

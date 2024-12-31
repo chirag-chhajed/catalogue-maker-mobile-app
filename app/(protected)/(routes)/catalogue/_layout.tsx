@@ -1,6 +1,5 @@
 import { Feather } from "@expo/vector-icons";
-import { Link } from "expo-router";
-import { Stack } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";

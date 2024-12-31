@@ -31,7 +31,9 @@ export const downloadImagesToGallery = async (
 ): Promise<void> => {
   try {
     // Request permissions once for all operations
-    const { status } = await MediaLibrary.requestPermissionsAsync();
+    const { status } = await MediaLibrary.requestPermissionsAsync(true, [
+      "photo",
+    ]);
 
     if (status !== "granted") {
       throw new Error("Gallery permission denied");

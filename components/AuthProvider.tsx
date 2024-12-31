@@ -1,8 +1,9 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Text } from "react-native";
-import { AppState } from "react-native";
-import { api, useRefreshQuery } from "~/store/features/api";
+import { ActivityIndicator, AppState, View } from "react-native";
+
+import { api } from "~/store/features/api";
+import { useRefreshQuery } from "~/store/features/api/authApi";
 import { useAppDispatch, useOrganizationIdSelector } from "~/store/hooks";
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -17,7 +18,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => clearTimeout(timer);
   }, [organizationId]);
 
-  const { isLoading, data } = useRefreshQuery(
+  const { isLoading } = useRefreshQuery(
     {
       organizationId,
     },
@@ -25,7 +26,6 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       skip: !shouldFetch,
     },
   );
-  // console.log("isLoading", data);
 
   const appState = useRef(AppState.currentState);
   const dispatch = useAppDispatch();
@@ -49,7 +49,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         appState.current = nextAppState;
         setAppStateVisible(appState.current);
-        console.log("AppState", appState.current);
+        // console.log("AppState", appState.current);
       },
     );
 
@@ -59,7 +59,11 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#96d0b0" />
+      </View>
+    );
   }
 
   return <>{children}</>;

@@ -41,14 +41,12 @@ module.exports = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-      fontFamily: {
-        system: platformSelect({
-          default: "GeistMono",
-        }),
-        sans: ["GeistMono", "sans-serif"],
-      },
       borderWidth: {
         hairline: hairlineWidth(),
+      },
+      fontFamily: {
+        sans: ["Geist", "sans-serif"],
+        mono: ["GeistMono", "monospace"],
       },
     },
   },

@@ -8,7 +8,7 @@ import * as z from "zod";
 import {
   useAcceptInviteMutation,
   useInviteStatusMutation,
-} from "~/store/features/api";
+} from "~/store/features/api/invitationApi";
 
 export default function JoinForm() {
   const schema = z.object({

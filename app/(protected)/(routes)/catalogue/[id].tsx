@@ -3,17 +3,24 @@ import {
   type Config,
 } from "@baronha/react-native-multiple-image-picker";
 import { AntDesign, Entypo, FontAwesome6 } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { FlashList } from "@shopify/flash-list";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useLocalSearchParams, Link, router } from "expo-router";
 import { useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { View, Pressable, Alert } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import { toast } from "sonner-native";
-import * as Haptics from "expo-haptics";
+import { z } from "zod";
+
 import img from "~/assets/266.png";
+import { Button } from "~/components/ui/button";
 import { Card, CardTitle } from "~/components/ui/card";
+import { Dialog, DialogContent } from "~/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,21 +30,15 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
+import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
+import { hasPermission } from "~/lib/role";
 import {
   type ImageType,
   useDeleteCatalogItemMutation,
   useGetCatalogItemsQuery,
   useUpdateCatalogItemMutation,
-} from "~/store/features/api";
-import { Dialog, DialogContent } from "~/components/ui/dialog";
+} from "~/store/features/api/catalogueApi";
 import { useDispatchImages, useUserState } from "~/store/hooks";
-import { hasPermission } from "~/lib/role";
-import { Button } from "~/components/ui/button";
-import { TextInput } from "react-native-gesture-handler";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 
 // Add this type definition
 type CardItem = {
@@ -322,7 +323,7 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
             className="mb-1 text-base font-bold text-gray-900"
             numberOfLines={1}
           >
-            {item.name}
+            hello
           </CardTitle>
 
           <Text
@@ -522,18 +523,3 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
     </Card>
   );
 };
-// file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg
-// file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg
-// Share.open({
-//   urls: [
-//     "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/d55fe9cb-9b6a-418a-af40-9c80b3e5d202.jpeg",
-//     "file:///data/user/0/com.cpcjain.mobile/cache/DocumentPicker/7dbb42b3-c696-4520-96d4-5b5fcd99e707.jpg",
-//   ],
-//   title: "Hello, this photos were shared from React Native Share",
-// })
-//   .then((res) => {
-//     console.log(res);
-//   })
-//   .catch((err) => {
-//     err && console.log(err);
-//   });

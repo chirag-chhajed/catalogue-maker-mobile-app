@@ -3,14 +3,14 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Text, View, TextInput, Pressable, ScrollView } from "react-native";
+import { Text, View, TextInput, ScrollView } from "react-native";
+import ImageModal from "react-native-image-modal";
 import { toast } from "sonner-native";
 import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
-import { useCreateCatalogItemMutation } from "~/store/features/api";
+import { useCreateCatalogItemMutation } from "~/store/features/api/catalogueApi";
 import { useGetImages } from "~/store/hooks";
-import ImageModal from "react-native-image-modal";
 
 export default function CreateItemForm() {
   const schema = z.object({
@@ -30,6 +30,7 @@ export default function CreateItemForm() {
       .multipleOf(0.01, "Price can only have up to 2 decimal places")
       .min(0.01, "Minimum price is 0.01"),
   });
+
   const form = useForm({
     defaultValues: {
       name: "",
@@ -38,13 +39,13 @@ export default function CreateItemForm() {
     },
     resolver: zodResolver(schema),
   });
+
   const { id } = useLocalSearchParams();
 
   const [create, { isLoading }] = useCreateCatalogItemMutation();
   const images = useGetImages();
-  console.log(isLoading, "loading");
+
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    console.log("submitting", data);
     const formData = new FormData();
     for (const image of images) {
       formData.append("images", image);
@@ -63,6 +64,7 @@ export default function CreateItemForm() {
       error: "Failed to create Item",
     });
   };
+
   return (
     <ScrollView
       className="flex-1"

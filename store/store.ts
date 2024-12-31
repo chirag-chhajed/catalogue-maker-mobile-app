@@ -2,8 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 
 import { api } from "~/store/features/api";
 import { authSlice } from "~/store/features/hello";
+import { imageSlice } from "~/store/features/imageSlice";
 import { helloSlice } from "~/store/features/organizationId";
-import { imageSlice } from "./features/imageSlice";
 
 export const store = configureStore({
   reducer: {

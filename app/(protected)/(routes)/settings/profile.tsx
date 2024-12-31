@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { toast } from "sonner-native";
 
 import { Button } from "~/components/ui/button";
-import { useLogoutMutation } from "~/store/features/api";
+import { useLogoutMutation } from "~/store/features/api/authApi";
 import { useUserState } from "~/store/hooks";
 
 const Profile = () => {

@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
-import { useLoginMutation } from "~/store/features/api";
+import { useLoginMutation } from "~/store/features/api/authApi";
 import { changeAccessToken } from "~/store/features/hello";
 import {
   useAppDispatch,
@@ -63,11 +63,11 @@ export default function App() {
                 })
                   .unwrap()
                   .then((data) => {
-                    console.log(data);
+                    // console.log(data);
                     dispatch(
                       changeAccessToken({ accessToken: data.accessToken }),
                     );
-                    router.push("/(protected)/(routes)/organization");
+                    router.replace("/(protected)/(routes)/organization");
                   })
                   .catch((err) => {
                     console.log(err);
