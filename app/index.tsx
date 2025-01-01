@@ -55,24 +55,21 @@ export default function App() {
         <View className=" flex-1 items-center justify-center">
           <Button
             disabled={isLoading}
-            onPress={() => {
-              onGoogleButtonPress().then(({ user }) => {
-                login({
+            onPress={async () => {
+              try {
+                const { user } = await onGoogleButtonPress();
+                const data = await login({
                   email: user.email,
                   name: user.displayName ?? "aefiowneo",
-                })
-                  .unwrap()
-                  .then((data) => {
-                    // console.log(data);
-                    dispatch(
-                      changeAccessToken({ accessToken: data.accessToken }),
-                    );
-                    router.replace("/(protected)/(routes)/organization");
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                  });
-              });
+                }).unwrap();
+
+                dispatch(changeAccessToken({ accessToken: data.accessToken }));
+                router.replace("/(protected)/(routes)/organization");
+              } catch (error) {
+                console.log(error);
+              } finally {
+                await GoogleSignin.signOut();
+              }
             }}
             size="lg"
           >

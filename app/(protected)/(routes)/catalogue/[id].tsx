@@ -323,7 +323,7 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
             className="mb-1 text-base font-bold text-gray-900"
             numberOfLines={1}
           >
-            hello
+            {item.name}
           </CardTitle>
 
           <Text

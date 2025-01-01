@@ -45,7 +45,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#96d0b0"
+      "backgroundColor": "#bd9ce4"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -58,7 +58,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/foreground.png",
-        "backgroundColor": "#96d0b0"
+        "backgroundColor": "#bd9ce4"
       },
       "package": "com.cpcjain.mobile",
       "googleServicesFile": "./google-services.json"
