@@ -1,6 +1,7 @@
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FlashList } from "@shopify/flash-list";
+import { format } from "date-fns";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
@@ -32,7 +33,6 @@ import {
   useUpdateCatalogMutation,
 } from "~/store/features/api/catalogueApi";
 import { useAppDispatch, useUserState } from "~/store/hooks";
-import { format } from "date-fns";
 
 type CardItem = {
   id: string;
@@ -46,10 +46,16 @@ const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { data, refetch, isLoading } = useGetCatalogQuery();
-
+  const insets = useSafeAreaInsets();
   const cataloguesExist = (data?.length ?? 0) > 0;
   const user = useUserState();
   const dispatch = useAppDispatch();
+  const contentInsets = {
+    top: insets.top,
+    bottom: insets.bottom,
+    left: 12,
+    right: 12,
+  };
 
   return (
     <View className="flex-1">
@@ -104,7 +110,7 @@ const Index = () => {
                           "getCatalog",
                           undefined,
                           (data) => {
-                            data?.items.sort(
+                            data?.sort(
                               (a, b) =>
                                 new Date(b.createdAt).getTime() -
                                 new Date(a.createdAt).getTime(),
@@ -126,7 +132,7 @@ const Index = () => {
                           "getCatalog",
                           undefined,
                           (data) => {
-                            data?.items.sort(
+                            data?.sort(
                               (a, b) =>
                                 new Date(a.createdAt).getTime() -
                                 new Date(b.createdAt).getTime(),

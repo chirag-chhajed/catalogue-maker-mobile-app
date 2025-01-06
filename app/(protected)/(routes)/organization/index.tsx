@@ -19,7 +19,7 @@ import { useOrganitionIdDispatch } from "~/store/hooks";
 
 const Index = () => {
   // const [organizationsExist, setOrganizationsExist] = useState(true);
-  const { data: organizations, isLoading } = useGetOrgsQuery();
+  const { data: organizations, isLoading, refetch } = useGetOrgsQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   if (isLoading) {
@@ -52,6 +52,8 @@ const Index = () => {
               data={organizations}
               estimatedItemSize={150}
               contentContainerStyle={{ padding: 16 }}
+              refreshing={isLoading}
+              onRefresh={refetch}
               renderItem={({ item: org }) => (
                 <TouchableOpacity
                   onPress={() => {
@@ -77,12 +79,6 @@ const Index = () => {
                         </Badge>
                       </CardFooter>
                     </View>
-                    <CardContent>
-                      <Image
-                        source="https://picsum.photos/80"
-                        style={{ height: 80, width: 80, borderRadius: 40 }}
-                      />
-                    </CardContent>
                   </Card>
                 </TouchableOpacity>
               )}

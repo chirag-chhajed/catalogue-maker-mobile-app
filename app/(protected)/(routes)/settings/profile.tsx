@@ -14,20 +14,20 @@ const Profile = () => {
       <View className="rounded-2xl bg-white p-6 shadow-sm">
         <Text className="mb-6 text-2xl font-bold text-gray-900">Profile</Text>
 
-        <View className="space-y-4">
+        <View className="flex gap-4">
           <View>
-            <Text className="text-sm font-medium text-gray-500">Name</Text>
-            <Text className="mt-1 text-base text-gray-900">{name}</Text>
+            <Text className=" font-semibold text-gray-600">Name</Text>
+            <Text className=" text-base text-gray-900">{name}</Text>
           </View>
 
           <View>
-            <Text className="text-sm font-medium text-gray-500">Email</Text>
-            <Text className="mt-1 text-base text-gray-900">{email}</Text>
+            <Text className=" font-semibold text-gray-600">Email</Text>
+            <Text className=" text-base text-gray-900">{email}</Text>
           </View>
 
           <View className="mb-6">
-            <Text className="text-sm font-medium text-gray-500">Role</Text>
-            <Text className="mt-1 text-base capitalize text-gray-900">
+            <Text className=" font-semibold text-gray-600">Role</Text>
+            <Text className=" text-base capitalize text-gray-900">
               {role?.toUpperCase()}
             </Text>
           </View>
@@ -45,7 +45,7 @@ const Profile = () => {
           variant="destructive"
           disabled={isLoading}
         >
-          <Text>Logout</Text>
+          <Text className="font-semibold text-white">Logout</Text>
         </Button>
       </View>
     </View>

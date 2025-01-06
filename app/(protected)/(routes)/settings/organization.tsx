@@ -8,7 +8,6 @@ import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -22,7 +21,7 @@ import { useOrganitionIdDispatch, useUserState } from "~/store/hooks";
 import { store } from "~/store/store";
 
 const Organization = () => {
-  const { data: organizations } = useGetOrgsQuery();
+  const { data: organizations, refetch, isLoading } = useGetOrgsQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   const user = useUserState();
@@ -53,6 +52,8 @@ const Organization = () => {
                 data={organizations}
                 estimatedItemSize={150}
                 contentContainerStyle={{ padding: 16 }}
+                refreshing={isLoading}
+                onRefresh={refetch}
                 renderItem={({ item: org }) => (
                   <TouchableOpacity
                     onPress={() => {
@@ -100,12 +101,6 @@ const Organization = () => {
                           </Badge>
                         </CardFooter>
                       </View>
-                      <CardContent>
-                        <Image
-                          source="https://picsum.photos/80"
-                          style={{ height: 80, width: 80, borderRadius: 40 }}
-                        />
-                      </CardContent>
                     </Card>
                   </TouchableOpacity>
                 )}
