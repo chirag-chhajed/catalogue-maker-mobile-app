@@ -19,22 +19,26 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
 import { hasPermission } from "~/lib/role";
 import {
+  catalogueApi,
   useDeleteCatalogMutation,
   useGetCatalogQuery,
   useUpdateCatalogMutation,
 } from "~/store/features/api/catalogueApi";
-import { useUserState } from "~/store/hooks";
+import { useAppDispatch, useUserState } from "~/store/hooks";
+import { format } from "date-fns";
 
 type CardItem = {
   id: string;
   name: string;
   description: string;
+  createdAt: Date;
 };
 
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
@@ -45,6 +49,7 @@ const Index = () => {
 
   const cataloguesExist = (data?.length ?? 0) > 0;
   const user = useUserState();
+  const dispatch = useAppDispatch();
 
   return (
     <View className="flex-1">
@@ -71,7 +76,7 @@ const Index = () => {
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search catalogues..."
+                placeholder="The searchbar doesn't work for now"
                 style={{ flex: 1 }}
                 className=" px-4 py-2 focus:border-blue-500"
               />
@@ -83,6 +88,61 @@ const Index = () => {
                   <AntDesign name="closecircle" size={24} color="#666" />
                 </Pressable>
               )}
+            </View>
+            <View className="flex-row gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Pressable className="rounded-md bg-gray-200 p-2">
+                    <AntDesign name="filter" size={24} color="#666" />
+                  </Pressable>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent insets={contentInsets} className="w-56">
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalog",
+                          undefined,
+                          (data) => {
+                            data?.items.sort(
+                              (a, b) =>
+                                new Date(b.createdAt).getTime() -
+                                new Date(a.createdAt).getTime(),
+                            );
+                          },
+                        ),
+                      );
+                    }}
+                  >
+                    <Text className="font-medium">Date: New to Old</Text>
+                    <DropdownMenuShortcut>
+                      <AntDesign name="calendar" size={20} color="#666" />
+                    </DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalog",
+                          undefined,
+                          (data) => {
+                            data?.items.sort(
+                              (a, b) =>
+                                new Date(a.createdAt).getTime() -
+                                new Date(b.createdAt).getTime(),
+                            );
+                          },
+                        ),
+                      );
+                    }}
+                  >
+                    <Text className="font-medium">Date: Old to New</Text>
+                    <DropdownMenuShortcut>
+                      <AntDesign name="calendar" size={20} color="#666" />
+                    </DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </View>
           </View>
 
@@ -223,6 +283,12 @@ const CompactCard = ({ item }: { item: CardItem }) => {
           <Text className="text-sm text-gray-600" numberOfLines={2}>
             {item.description}
           </Text>
+          <View className="mt-2 flex-row items-center">
+            <AntDesign name="calendar" size={12} color="#6B7280" />
+            <Text className="ml-1 text-xs text-gray-500">
+              {format(new Date(item.createdAt), "dd/MM/yyyy")}
+            </Text>
+          </View>
         </View>
       </Link>
 

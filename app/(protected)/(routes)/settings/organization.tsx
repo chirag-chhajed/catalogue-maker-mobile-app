@@ -1,3 +1,4 @@
+import { AntDesign } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { Link, router } from "expo-router";
@@ -14,15 +15,17 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
+import { cn } from "~/lib/utils";
 import { api } from "~/store/features/api";
 import { useGetOrgsQuery } from "~/store/features/api/organizationApi";
-import { useOrganitionIdDispatch } from "~/store/hooks";
+import { useOrganitionIdDispatch, useUserState } from "~/store/hooks";
 import { store } from "~/store/store";
 
 const Organization = () => {
   const { data: organizations } = useGetOrgsQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
+  const user = useUserState();
   return (
     <View className="flex-1 p-4">
       {!organizationsExist ? (
@@ -53,6 +56,7 @@ const Organization = () => {
                 renderItem={({ item: org }) => (
                   <TouchableOpacity
                     onPress={() => {
+                      if (user?.organizationId === org.id) return;
                       store.dispatch(api.util.resetApiState());
                       changeOrganizationId(org.id);
                       router.dismissAll();
@@ -60,7 +64,26 @@ const Organization = () => {
                     }}
                     key={org.id}
                   >
-                    <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
+                    <Card
+                      className={cn(
+                        "mb-4 flex w-full flex-row items-end justify-between py-3",
+                        user?.organizationId === org.id
+                          ? "border-2 border-blue-500"
+                          : "",
+                      )}
+                    >
+                      {user?.organizationId === org.id && (
+                        <View className="absolute right-2 top-2 flex-row items-center">
+                          <AntDesign
+                            name="checkcircle"
+                            size={16}
+                            color="#2563eb"
+                          />
+                          <Text className="ml-1 text-xs font-medium text-blue-600">
+                            Current Org
+                          </Text>
+                        </View>
+                      )}
                       <View>
                         <CardHeader>
                           <CardTitle>{org.name}</CardTitle>

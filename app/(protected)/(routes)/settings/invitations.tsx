@@ -49,7 +49,7 @@ const Invitations = () => {
               error: "Failed to create invitation",
             });
           }}
-          className="mt-4 mt-4 w-full rounded-md bg-blue-600 py-3"
+          className="mt-4 w-full rounded-md bg-blue-600 py-3"
         >
           <Text className="font-semibold text-white">Generate Invitation</Text>
         </Button>
@@ -115,7 +115,7 @@ const InvitationCard = ({
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="text-base font-medium text-gray-900">
+          <Text className="font-mono text-base font-medium text-gray-900">
             {item.inviteCode}
           </Text>
           <Text className="mt-1 text-sm capitalize text-gray-600">

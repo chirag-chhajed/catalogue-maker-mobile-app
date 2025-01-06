@@ -33,13 +33,14 @@ import { Text } from "~/components/ui/text";
 import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 import { hasPermission } from "~/lib/role";
 import {
+  catalogueApi,
   type ImageType,
   useDeleteCatalogItemMutation,
   useGetCatalogItemsQuery,
   useUpdateCatalogItemMutation,
 } from "~/store/features/api/catalogueApi";
-import { useDispatchImages, useUserState } from "~/store/hooks";
-
+import { useAppDispatch, useDispatchImages, useUserState } from "~/store/hooks";
+import { format } from "date-fns";
 // Add this type definition
 type CardItem = {
   id: string;
@@ -47,6 +48,7 @@ type CardItem = {
   description: string | null;
   price: string | null;
   images: ImageType[];
+  createdAt: Date;
 };
 
 const config: Config = {
@@ -89,7 +91,7 @@ const config: Config = {
 
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
-
+  const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const { setImages } = useDispatchImages();
   const { data, isLoading, refetch } = useGetCatalogItemsQuery(
@@ -140,7 +142,7 @@ export default function DetailsScreen() {
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search catalogues..."
+                placeholder="The searchbar doesn't work for now"
                 style={{ flex: 1 }}
                 className=" px-4 py-2 focus:border-blue-500"
               />
@@ -162,25 +164,81 @@ export default function DetailsScreen() {
                   </Pressable>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent insets={contentInsets} className="w-56">
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalogItems",
+                          { id: id as string },
+                          (data) => {
+                            data.items.sort(
+                              (a, b) =>
+                                new Date(b.createdAt).getTime() -
+                                new Date(a.createdAt).getTime(),
+                            );
+                          },
+                        ),
+                      );
+                    }}
+                  >
                     <Text className="font-medium">Date: New to Old</Text>
                     <DropdownMenuShortcut>
                       <AntDesign name="calendar" size={20} color="#666" />
                     </DropdownMenuShortcut>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalogItems",
+                          { id },
+                          (data) => {
+                            data.items.sort(
+                              (a, b) =>
+                                new Date(a.createdAt).getTime() -
+                                new Date(b.createdAt).getTime(),
+                            );
+                          },
+                        ),
+                      );
+                    }}
+                  >
                     <Text className="font-medium">Date: Old to New</Text>
                     <DropdownMenuShortcut>
                       <AntDesign name="calendar" size={20} color="#666" />
                     </DropdownMenuShortcut>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalogItems",
+                          { id },
+                          (data) => {
+                            data.items.sort((a, b) => b.price - a.price);
+                          },
+                        ),
+                      );
+                    }}
+                  >
                     <Text className="font-medium">Price: High to Low</Text>
                     <DropdownMenuShortcut>
                       <AntDesign name="arrowup" size={20} color="#666" />
                     </DropdownMenuShortcut>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onPress={() => {
+                      dispatch(
+                        catalogueApi.util.updateQueryData(
+                          "getCatalogItems",
+                          { id },
+                          (data) => {
+                            data.items.sort((a, b) => a.price - b.price);
+                          },
+                        ),
+                      );
+                    }}
+                  >
                     <Text className="font-medium">Price: Low to High</Text>
                     <DropdownMenuShortcut>
                       <AntDesign name="arrowdown" size={20} color="#666" />
@@ -338,8 +396,14 @@ const CompactCard = ({ item, id }: { item: CardItem; id: string }) => {
             className="text-base font-semibold text-blue-600"
             numberOfLines={1}
           >
-            ₹{item.price.toLocaleString()}
+            ₹ {item.price.toLocaleString()}
           </Text>
+          <View className="mt-2 flex-row items-center">
+            <AntDesign name="calendar" size={12} color="#6B7280" />
+            <Text className="ml-1 text-xs text-gray-500">
+              {format(new Date(item.createdAt), "dd/MM/yyyy")}
+            </Text>
+          </View>
         </View>
       </Link>
       {hasPermission(role, "update:catalogue") ? (

@@ -33,7 +33,7 @@ type CreateOrgArg = {
   description?: string;
 };
 type GetOrgResponse = {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   role: "admin" | "editor" | "viewer";
