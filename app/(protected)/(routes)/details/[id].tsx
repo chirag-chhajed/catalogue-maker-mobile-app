@@ -53,7 +53,12 @@ const DetailsPage = () => {
         estimatedItemSize={width}
         estimatedListSize={{ height, width }}
         renderItem={({ item }) => (
-          <Slide {...item} key={`details-${item.id}`} />
+          <Slide
+            {...item}
+            id={id}
+            catalogueId={catalogueId}
+            key={`details-${item.id}`}
+          />
         )}
         showsHorizontalScrollIndicator={false}
         pagingEnabled
@@ -69,11 +74,15 @@ const Slide = ({
   name,
   description,
   price,
+  id,
+  catalogueId,
 }: {
   images: ImageType[];
   name: string;
   description: string;
   price: number;
+  id: string;
+  catalogueId: string;
 }) => {
   const { width, height } = Dimensions.get("window");
 
@@ -225,7 +234,7 @@ const Slide = ({
           <Pressable
             onPress={async () => {
               await Share.open({
-                message: "https://www.google.com",
+                message: `https://cataloguemaker.vercel.app/share/${id}?catalogueItemId=${catalogueId}`,
               });
             }}
             className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"

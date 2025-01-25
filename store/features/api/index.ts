@@ -11,8 +11,9 @@ import { clearOrganizationId } from "../organizationId";
 
 import type { RootState } from "~/store/store";
 
+const baseUrl = "https://catalogue-maker.fly.dev/api";
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://605l6z6z-3434.inc1.devtunnels.ms/api",
+  baseUrl,
   credentials: "include",
   prepareHeaders(headers, api) {
     const token = (api.getState() as RootState).hello.accessToken;

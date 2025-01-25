@@ -58,6 +58,7 @@ export default function App() {
             onPress={async () => {
               try {
                 const { user } = await onGoogleButtonPress();
+                const idToken = await user.getIdToken();
                 const data = await login({
                   email: user.email,
                   name: user.displayName ?? "aefiowneo",

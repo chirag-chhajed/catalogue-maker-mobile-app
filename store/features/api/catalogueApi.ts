@@ -98,6 +98,7 @@ type GetCatalogues = {
   updatedAt: Date;
   createdBy: string;
   deletedAt: Date | null;
+  images: ImageType[];
 }[];
 export type ImageType = {
   id: string;

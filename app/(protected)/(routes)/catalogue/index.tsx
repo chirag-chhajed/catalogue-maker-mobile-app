@@ -24,10 +24,12 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
+import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { hasPermission } from "~/lib/role";
 import {
   catalogueApi,
+  type ImageType,
   useDeleteCatalogMutation,
   useGetCatalogQuery,
   useUpdateCatalogMutation,
@@ -39,15 +41,15 @@ type CardItem = {
   name: string;
   description: string;
   createdAt: Date;
+  images: ImageType[];
 };
 
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { data, refetch, isLoading } = useGetCatalogQuery();
+  const { refetch, isLoading, data } = useGetCatalogQuery();
   const insets = useSafeAreaInsets();
-  const cataloguesExist = (data?.length ?? 0) > 0;
   const user = useUserState();
   const dispatch = useAppDispatch();
   const contentInsets = {
@@ -59,7 +61,15 @@ const Index = () => {
 
   return (
     <View className="flex-1">
-      {!cataloguesExist ? (
+      {isLoading ? (
+        <View className="flex-1 px-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <View key={index} className="mb-2">
+              <SkeletonCard />
+            </View>
+          ))}
+        </View>
+      ) : !data?.length ? (
         <View className="flex-1 items-center justify-center p-4">
           <Image source={img} style={{ width: 200, height: 200 }} />
           <Text className="mb-4 text-center text-gray-600">
@@ -264,14 +274,34 @@ const CompactCard = ({ item }: { item: CardItem }) => {
 
   return (
     <Card className=" relative flex-row overflow-hidden rounded-lg bg-white shadow-sm">
-      <View
-        style={{
-          width: 100,
-          height: 100,
-          backgroundColor:
-            pastelColors[Math.floor(Math.random() * pastelColors.length)],
-        }}
-      />
+      {item.images.length === 0 ? (
+        <View
+          style={{
+            width: 120,
+            height: 120,
+            backgroundColor:
+              pastelColors[Math.floor(Math.random() * pastelColors.length)],
+          }}
+        />
+      ) : (
+        <View
+          style={{ width: 120, height: 120 }}
+          className="flex-row flex-wrap overflow-hidden"
+        >
+          {item.images.slice(0, 4).map((image, index) => (
+            <Image
+              key={image.id}
+              source={{ uri: image.imageUrl }}
+              placeholder={image.blurhash}
+              contentFit="cover"
+              style={{
+                width: item.images.length === 1 ? 120 : 60,
+                height: item.images.length <= 2 ? 120 : 60,
+              }}
+            />
+          ))}
+        </View>
+      )}
       <Link
         href={{
           pathname: "/catalogue/[id]",
@@ -411,5 +441,29 @@ const CompactCard = ({ item }: { item: CardItem }) => {
         </DialogContent>
       </Dialog>
     </Card>
+  );
+};
+
+export const SkeletonCard = () => {
+  return (
+    <View className="mb-4 flex-row overflow-hidden rounded-lg bg-white p-3 shadow-sm">
+      {/* Image skeleton */}
+      <Skeleton className="h-[120px] w-[120px]" />
+
+      {/* Content area */}
+      <View className="flex-1 pl-3">
+        {/* Title skeleton */}
+        <Skeleton className="mb-2 h-5 w-3/4" />
+
+        {/* Description skeletons */}
+        <Skeleton className="mb-1 h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+
+        {/* Date skeleton */}
+        <View className="mt-3 flex-row items-center">
+          <Skeleton className="h-3 w-20" />
+        </View>
+      </View>
+    </View>
   );
 };

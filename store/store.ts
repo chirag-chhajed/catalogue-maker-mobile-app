@@ -4,12 +4,14 @@ import { api } from "~/store/features/api";
 import { authSlice } from "~/store/features/hello";
 import { imageSlice } from "~/store/features/imageSlice";
 import { helloSlice } from "~/store/features/organizationId";
+import { sharableImageSlice } from "~/store/features/sharableImageSlice";
 
 export const store = configureStore({
   reducer: {
     hello: authSlice.reducer,
     orgId: helloSlice.reducer,
     image: imageSlice.reducer,
+    [sharableImageSlice.name]: sharableImageSlice.reducer,
     [api.reducerPath]: api.reducer,
   },
   middleware: (getDefaultMiddleware) =>
