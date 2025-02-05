@@ -6,10 +6,10 @@ const authApi = api.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginArg>({
-      query: ({ name, email }) => ({
-        url: "/auth/login",
+      query: ({ name, email, idToken }) => ({
+        url: "v2/auth/login",
         method: "POST",
-        body: { name, email },
+        body: { name, email, idToken },
       }),
       async onQueryStarted(_args, { dispatch, queryFulfilled }) {
         try {
@@ -75,4 +75,4 @@ type LoginResponse = {
   accessToken: string;
   user: BasePayload;
 };
-type LoginArg = { name: string; email: string };
+type LoginArg = { name: string; email: string; idToken: string };

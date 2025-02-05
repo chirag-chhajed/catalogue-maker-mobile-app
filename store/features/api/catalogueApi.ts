@@ -15,10 +15,10 @@ export const catalogueApi = api.injectEndpoints({
       query: () => "/catalogue/",
       providesTags: ["Catalogue"],
     }),
-    getCatalogItems: builder.query<GetCatalogItems, { id: string }>({
-      query: ({ id }) => `/catalogue/${id}`,
-      providesTags: ["Item"],
-    }),
+    // getCatalogItems: builder.query<GetCatalogItems, { id: string }>({
+    //   query: ({ id }) => `/catalogue/${id}`,
+    //   providesTags: ["Item"],
+    // }),
     deleteCatalog: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
         method: "DELETE",
@@ -80,7 +80,7 @@ export const {
   useCreateCatalogMutation,
   useDeleteCatalogItemMutation,
   useDeleteCatalogMutation,
-  useGetCatalogItemsQuery,
+  // useGetCatalogItemsQuery,
   useGetCatalogQuery,
   useUpdateCatalogItemMutation,
   useUpdateCatalogMutation,

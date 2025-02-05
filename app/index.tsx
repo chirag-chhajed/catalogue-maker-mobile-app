@@ -59,9 +59,11 @@ export default function App() {
               try {
                 const { user } = await onGoogleButtonPress();
                 const idToken = await user.getIdToken();
+
                 const data = await login({
                   email: user.email,
                   name: user.displayName ?? "aefiowneo",
+                  idToken: idToken ?? "",
                 }).unwrap();
 
                 dispatch(changeAccessToken({ accessToken: data.accessToken }));

@@ -2,7 +2,7 @@ import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Image, type ImageContentFit } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import {
   Dimensions,
   View,
@@ -22,34 +22,98 @@ import {
   downloadImagesToGallery,
 } from "~/lib/downloadImagesToCache";
 import type { ImageType } from "~/store/features/api";
-import { useGetCatalogItemsQuery } from "~/store/features/api/catalogueApi";
+import { useGetCatalogItemsQuery } from "~/store/features/api/v2/catalogueApiV2";
 
 const DetailsPage = () => {
-  const { id, catalogueId } = useLocalSearchParams();
+  const {
+    id,
+    catalogueId,
+    page: pageParam,
+    searchPage,
+    sortDir,
+    priceSort,
+  } = useLocalSearchParams();
   const { width, height } = Dimensions.get("window");
+  const flashListRef = useRef<FlashList<any>>(null);
+
+  // Convert page parameter to number with fallback to 1
+  const [currentPage, setCurrentPage] = useState(Number(pageParam) || 1);
+
   const { data, isLoading } = useGetCatalogItemsQuery(
-    { id },
+    {
+      id,
+      page: currentPage,
+      sortDir: sortDir as string,
+      priceSort: priceSort as string,
+      limit: 10,
+    },
     {
       skip: !id,
     },
   );
-  const rearrangedData = useMemo(() => {
-    const matchIndex = data?.items.findIndex((item) => item.id === catalogueId);
-    if (matchIndex === -1) return data?.items;
 
-    const beforeMatch = data?.items.slice(0, matchIndex);
-    const afterMatch = data?.items.slice(matchIndex + 1);
-    const matchItem = data?.items[matchIndex];
+  // Find initial scroll index based on catalogueId
+  const initialScrollIndex = useMemo(() => {
+    if (!data?.items || !catalogueId) return 0;
+    return data.items.findIndex((item) => item.id === catalogueId);
+  }, [data?.items, catalogueId]);
 
-    return [matchItem, ...afterMatch, ...beforeMatch];
-  }, [id]);
+  // Scroll to initial item when data is loaded
+  useEffect(() => {
+    if (!isLoading && data?.items && initialScrollIndex !== -1) {
+      flashListRef.current?.scrollToIndex({
+        index: initialScrollIndex,
+        animated: false,
+      });
+    }
+  }, [isLoading, data?.items, initialScrollIndex]);
+
+  const handlePageChange = useCallback(
+    (index: number) => {
+      const isLastItem = index === data?.items?.length - 1;
+      const isFirstItem = index === 0;
+
+      if (isLastItem && data?.pagination.hasMore) {
+        setCurrentPage((prev) => prev + 1);
+      } else if (isFirstItem && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+    },
+    [currentPage, data?.pagination.hasMore, data?.items?.length],
+  );
+
+  // Handle scroll failure (if the index is not yet rendered)
+  const handleScrollToIndexFailed = useCallback(
+    (info: {
+      index: number;
+      highestMeasuredFrameIndex: number;
+      averageItemLength: number;
+    }) => {
+      const offset = info.averageItemLength * info.index;
+      flashListRef.current?.scrollToOffset({ offset, animated: false });
+
+      // Try scrolling to index after a small delay
+      setTimeout(() => {
+        if (flashListRef.current) {
+          flashListRef.current.scrollToIndex({
+            index: info.index,
+            animated: false,
+          });
+        }
+      }, 100);
+    },
+    [],
+  );
+
   if (isLoading) {
     return <Text>Loading</Text>;
   }
+
   return (
     <View style={{ flex: 1, width, height }}>
       <FlashList
-        data={rearrangedData}
+        ref={flashListRef}
+        data={data?.items}
         estimatedItemSize={width}
         estimatedListSize={{ height, width }}
         renderItem={({ item }) => (
@@ -63,6 +127,15 @@ const DetailsPage = () => {
         showsHorizontalScrollIndicator={false}
         pagingEnabled
         horizontal
+        onScrollToIndexFailed={handleScrollToIndexFailed}
+        onViewableItemsChanged={({ viewableItems }) => {
+          if (viewableItems[0]) {
+            handlePageChange(viewableItems[0].index ?? 0);
+          }
+        }}
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+        }}
       />
     </View>
   );
@@ -151,9 +224,9 @@ const Slide = ({
                           item.imageUrl,
                         ]);
                         await Share.shareSingle({
-                          title: "Share Image",
                           urls: cachedImages,
                           social: Share.Social.WHATSAPP,
+                          message: `${name}\n\n${description}\n\nPrice: ${price}`,
                         });
                       } catch (err) {
                         console.error(err);
@@ -178,7 +251,11 @@ const Slide = ({
                 const cachedImages = await downloadImagesToCache(
                   images.map((image) => image.imageUrl),
                 );
-                Share.open({ urls: cachedImages, title: name });
+                Share.open({
+                  urls: cachedImages,
+                  title: name,
+                  message: `${name}\n\n${description}\n\nPrice: ${price}`,
+                });
               } catch (error) {
                 console.log(error);
               }
@@ -216,11 +293,11 @@ const Slide = ({
                 const cachedImages = await downloadImagesToCache(
                   images.map((img) => img.imageUrl),
                 );
-                console.log(cachedImages);
                 await Share.shareSingle({
-                  title: "Title",
                   urls: cachedImages,
                   social: Share.Social.WHATSAPP,
+                  message: `${name}\n\n${description}\n\nPrice: ${price}`,
+                  title: name,
                 });
               } catch (err) {
                 console.error(err);

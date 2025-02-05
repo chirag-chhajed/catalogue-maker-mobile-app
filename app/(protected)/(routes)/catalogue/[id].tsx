@@ -2,34 +2,22 @@ import {
   openPicker,
   type Config,
 } from "@baronha/react-native-multiple-image-picker";
-import { AntDesign, Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
+import BottomSheet, { BottomSheetFlashList } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
-import { format } from "date-fns";
-import * as Haptics from "expo-haptics";
+import { useDebounce } from "@uidotdev/usehooks";
 import { Image } from "expo-image";
-import { useLocalSearchParams, Link, router } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import {
-  View,
-  Pressable,
-  Alert,
-  Dimensions,
-  Platform,
-  StyleSheet,
-} from "react-native";
-import { TextInput } from "react-native-gesture-handler";
+import { View, Pressable, Dimensions, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import { toast } from "sonner-native";
-import { z } from "zod";
 
 import img from "~/assets/266.png";
+import { CompactCard } from "~/components/CatalogueItemCompactCard";
 import { Button } from "~/components/ui/button";
-import { Card, CardTitle } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
-import { Dialog, DialogContent } from "~/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,34 +32,17 @@ import {
   downloadImagesToCache,
   downloadImagesToGallery,
 } from "~/lib/downloadImagesToCache";
-import { hasPermission } from "~/lib/role";
 import {
-  catalogueApi,
-  type ImageType,
-  useDeleteCatalogItemMutation,
   useGetCatalogItemsQuery,
-  useUpdateCatalogItemMutation,
-} from "~/store/features/api/catalogueApi";
+  useSearchCatalogItemsQuery,
+} from "~/store/features/api/v2/catalogueApiV2";
 import {
-  addImages,
   clearItems,
-  removeImages,
   toggleCheck,
   useGetCheckedImages,
   useGetImagesFromGroup,
 } from "~/store/features/sharableImageSlice";
-import { useAppDispatch, useDispatchImages, useUserState } from "~/store/hooks";
-import BottomSheet, { BottomSheetFlashList } from "@gorhom/bottom-sheet";
-
-// Add this type definition
-type CardItem = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: string | null;
-  images: ImageType[];
-  createdAt: Date;
-};
+import { useAppDispatch, useDispatchImages } from "~/store/hooks";
 
 const config: Config = {
   maxSelect: 5,
@@ -111,15 +82,89 @@ const config: Config = {
   },
 };
 
+// Add PaginationButtons component at the top level
+const PaginationButtons = ({
+  page,
+  hasMore,
+  onPrevPress,
+  onNextPress,
+  noResults,
+}: {
+  page: number;
+  hasMore: boolean;
+  onPrevPress: () => void;
+  onNextPress: () => void;
+  noResults?: boolean;
+}) => {
+  // Don't show buttons if it's first page and no more results
+  if (page === 1 && !hasMore) return null;
+
+  return (
+    <View className="px-4 py-2">
+      <View className="flex-row items-center justify-center gap-4">
+        <Button
+          variant="outline"
+          onPress={onPrevPress}
+          disabled={page === 1}
+          className="flex-1"
+        >
+          <Text className="text-center font-medium">Previous</Text>
+        </Button>
+        <Button
+          variant="outline"
+          onPress={onNextPress}
+          disabled={!hasMore}
+          className="flex-1"
+        >
+          <Text className="text-center font-medium">Next</Text>
+        </Button>
+      </View>
+      {!hasMore && page > 1 && (
+        <Text className="mt-4 text-center text-gray-600">
+          You have reached the end of the list.
+        </Text>
+      )}
+      {noResults && (
+        <Text className="mt-4 text-center text-gray-600">
+          No items exist for this term.
+        </Text>
+      )}
+    </View>
+  );
+};
+
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sort, setSort] = useState<"asc" | "desc">("desc");
+  const [priceSort, setPriceSort] = useState<"asc" | "desc">("asc");
+  const [page, setPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
+  const debouncedSearchTerm = useDebounce(searchQuery, 500);
   const { setImages } = useDispatchImages();
   const { data, isLoading, refetch } = useGetCatalogItemsQuery(
-    { id },
+    { id, page, limit: 10, sortDir: sort, priceSort },
     {
       skip: !id,
+    },
+  );
+
+  const {
+    data: searchData,
+    isLoading: isSearchLoading,
+    refetch: refetchSearch,
+  } = useSearchCatalogItemsQuery(
+    {
+      id: id as string,
+      page: searchPage,
+      limit: 10,
+      sortDir: sort,
+      priceSort,
+      query: debouncedSearchTerm,
+    },
+    {
+      skip: debouncedSearchTerm.length === 0 || !id,
     },
   );
 
@@ -207,6 +252,55 @@ export default function DetailsScreen() {
       </View>
     );
   };
+
+  // Add pagination handlers
+  const handlePrevPage = () => {
+    if (searchQuery.length > 0) {
+      setSearchPage((prev) => Math.max(1, prev - 1));
+    } else {
+      setPage((prev) => Math.max(1, prev - 1));
+    }
+  };
+
+  const handleNextPage = () => {
+    if (searchQuery.length > 0 && searchData?.pagination.hasMore) {
+      setSearchPage((prev) => prev + 1);
+    } else if (data?.pagination.hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  // For sharing from the BottomSheet
+  const handleShare = async () => {
+    try {
+      const cachedImages = await downloadImagesToCache(
+        checkedImages?.map((image) => image.imageUrl),
+      );
+
+      Share.open({
+        urls: cachedImages,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  // For WhatsApp sharing
+  const handleWhatsAppShare = async () => {
+    try {
+      const cachedImages = await downloadImagesToCache(
+        checkedImages?.map((img) => img.imageUrl),
+      );
+
+      await Share.shareSingle({
+        urls: cachedImages,
+        social: Share.Social.WHATSAPP,
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <View className="flex-1">
       {isLoading ? (
@@ -217,7 +311,7 @@ export default function DetailsScreen() {
             </View>
           ))}
         </View>
-      ) : !data?.items?.length ? (
+      ) : !data?.items?.length && !searchData?.items?.length ? (
         <View className="flex-1 items-center justify-center p-4">
           <Image source={img} style={{ width: 200, height: 200 }} />
           <Text className="mb-4 text-center text-gray-600">No items yet</Text>
@@ -254,19 +348,8 @@ export default function DetailsScreen() {
                 <DropdownMenuContent insets={contentInsets} className="w-56">
                   <DropdownMenuItem
                     onPress={() => {
-                      dispatch(
-                        catalogueApi.util.updateQueryData(
-                          "getCatalogItems",
-                          { id: id as string },
-                          (data) => {
-                            data.items.sort(
-                              (a, b) =>
-                                new Date(b.createdAt).getTime() -
-                                new Date(a.createdAt).getTime(),
-                            );
-                          },
-                        ),
-                      );
+                      setSort("desc");
+                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Date: New to Old</Text>
@@ -276,19 +359,8 @@ export default function DetailsScreen() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onPress={() => {
-                      dispatch(
-                        catalogueApi.util.updateQueryData(
-                          "getCatalogItems",
-                          { id },
-                          (data) => {
-                            data.items.sort(
-                              (a, b) =>
-                                new Date(a.createdAt).getTime() -
-                                new Date(b.createdAt).getTime(),
-                            );
-                          },
-                        ),
-                      );
+                      setSort("asc");
+                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Date: Old to New</Text>
@@ -298,15 +370,8 @@ export default function DetailsScreen() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onPress={() => {
-                      dispatch(
-                        catalogueApi.util.updateQueryData(
-                          "getCatalogItems",
-                          { id },
-                          (data) => {
-                            data.items.sort((a, b) => b.price - a.price);
-                          },
-                        ),
-                      );
+                      setPriceSort("desc");
+                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Price: High to Low</Text>
@@ -316,15 +381,8 @@ export default function DetailsScreen() {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onPress={() => {
-                      dispatch(
-                        catalogueApi.util.updateQueryData(
-                          "getCatalogItems",
-                          { id },
-                          (data) => {
-                            data.items.sort((a, b) => a.price - b.price);
-                          },
-                        ),
-                      );
+                      setPriceSort("asc");
+                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Price: Low to High</Text>
@@ -367,21 +425,44 @@ export default function DetailsScreen() {
               </Pressable>
             ) : null}
           </View>
-          {/* Cards Section */}
+          {/* Cards Section - Updated */}
           <View className="flex-1 px-4">
             <FlashList
-              data={data?.items}
+              data={searchQuery.length > 0 ? searchData?.items : data?.items}
               renderItem={({ item }) => (
-                <CompactCard item={item} id={id} select={selectionMode} />
+                <CompactCard
+                  item={item}
+                  id={id}
+                  select={selectionMode}
+                  page={page}
+                  searchPage={searchPage}
+                  sortDir={sort}
+                  priceSort={priceSort}
+                />
               )}
               extraData={selectionMode}
               estimatedItemSize={385}
               ItemSeparatorComponent={() => <View className="h-2" />}
               showsVerticalScrollIndicator={false}
-              onRefresh={refetch}
-              refreshing={isLoading}
+              onRefresh={searchQuery.length > 0 ? refetchSearch : refetch}
+              refreshing={searchQuery.length > 0 ? isSearchLoading : isLoading}
             />
           </View>
+
+          {/* Add Pagination Buttons */}
+          <PaginationButtons
+            page={searchQuery.length > 0 ? searchPage : page}
+            hasMore={
+              searchQuery.length > 0
+                ? (searchData?.pagination.hasMore ?? false)
+                : (data?.pagination.hasMore ?? false)
+            }
+            onPrevPress={handlePrevPage}
+            onNextPress={handleNextPage}
+            noResults={
+              searchQuery.length > 0 && searchData?.items?.length === 0
+            }
+          />
         </View>
       )}
       {/* Fixed bottom buttons */}
@@ -417,16 +498,7 @@ export default function DetailsScreen() {
         {checkedImages?.length > 0 ? (
           <View className="absolute inset-x-0 bottom-4 flex-row justify-center gap-6 border-gray-200 pt-4">
             <Pressable
-              onPress={async () => {
-                try {
-                  const cachedImages = await downloadImagesToCache(
-                    checkedImages?.map((image) => image.imageUrl),
-                  );
-                  Share.open({ urls: cachedImages });
-                } catch (error) {
-                  console.log(error);
-                }
-              }}
+              onPress={handleShare}
               className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"
             >
               <Feather
@@ -455,20 +527,7 @@ export default function DetailsScreen() {
             </Pressable>
 
             <Pressable
-              onPress={async () => {
-                try {
-                  const cachedImages = await downloadImagesToCache(
-                    checkedImages?.map((img) => img.imageUrl),
-                  );
-
-                  await Share.shareSingle({
-                    urls: cachedImages,
-                    social: Share.Social.WHATSAPP,
-                  });
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
+              onPress={handleWhatsAppShare}
               className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"
             >
               <FontAwesome6 name="whatsapp" size={24} color="#25D366" />
@@ -479,368 +538,6 @@ export default function DetailsScreen() {
     </View>
   );
 }
-
-const CompactCard = ({
-  item,
-  id,
-  select,
-}: {
-  item: CardItem;
-  id: string;
-  select: boolean;
-}) => {
-  const insets = useSafeAreaInsets();
-
-  const [deleteItem] = useDeleteCatalogItemMutation();
-  const [updateItem, { isLoading }] = useUpdateCatalogItemMutation();
-  const contentInsets = {
-    top: insets.top,
-    bottom: insets.bottom,
-    left: 12,
-    right: 12,
-  };
-  const [open, setOpen] = useState(false);
-  const [checked, setChecked] = useState(false);
-  const dispatch = useAppDispatch();
-
-  const handleCheck = (checked: boolean) => {
-    if (checked) {
-      dispatch(
-        addImages({
-          id,
-          itemId: item.id,
-          images: item.images.map((img) => ({
-            id: img.id,
-            imageUrl: img.imageUrl,
-            blurhash: img.blurhash,
-            checked: true,
-          })),
-        }),
-      );
-    } else {
-      dispatch(
-        removeImages({
-          id,
-          itemId: item.id,
-        }),
-      );
-    }
-    setChecked(checked);
-  };
-  useEffect(() => {
-    if (!select) {
-      setChecked(false);
-    }
-  }, [select]);
-
-  const schema = z.object({
-    name: z
-      .string()
-      .trim()
-      .min(1, "Name must be minimum of 1 character")
-      .max(100, "Name must be maximum of 100 characters"),
-    description: z
-      .string()
-      .trim()
-      .max(500, "Description must be maximum of 500 characters")
-      .optional(),
-    price: z.coerce
-      .number({ message: "Enter a valid price" })
-      .positive("Price must be greater than 0")
-      .multipleOf(0.01, "Price can only have up to 2 decimal places")
-      .min(0.01, "Minimum price is 0.01"),
-  });
-  const { role } = useUserState();
-  const form = useForm<z.infer<typeof schema>>({
-    defaultValues: {
-      name: item.name,
-      description: item.description,
-      price: item.price,
-    },
-    resolver: zodResolver(schema),
-  });
-
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Catalogue Item",
-      "Are you sure you want to delete?",
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            toast.promise(deleteItem({ id: item.id }).unwrap(), {
-              loading: "Deleting...",
-              success: () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                return "Item deleted successfully";
-              },
-              error: "Failed to delete Item",
-            });
-          },
-        },
-      ],
-      { cancelable: false },
-    );
-  };
-
-  const handleSubmit = async (data: z.infer<typeof schema>) => {
-    toast.promise(
-      updateItem({ id: item.id, catalogueId: id, ...data }).unwrap(),
-      {
-        success: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setOpen(false);
-          return "Item updated successfully";
-        },
-        error: "Failed to update Item",
-        loading: "Updating Item...",
-      },
-    );
-  };
-
-  return (
-    <Card className="flex-row overflow-hidden rounded-lg bg-white shadow-sm">
-      <Image
-        style={{ width: 120, height: 120 }}
-        source={item.images[0].imageUrl}
-        contentFit="cover"
-        className="rounded-l-lg"
-        placeholder={item.images[0].blurhash}
-      />
-
-      <View className="flex-1 p-3">
-        <Link
-          href={{
-            pathname: "/(protected)/(routes)/details/[id]",
-            params: {
-              id,
-              title: item.name,
-              catalogueId: item.id,
-            },
-          }}
-        >
-          <CardTitle
-            className="mb-1 text-base font-bold text-gray-900 underline"
-            numberOfLines={1}
-          >
-            {item.name}
-          </CardTitle>
-        </Link>
-        <Text
-          className="mb-1 flex-1 text-sm text-gray-600"
-          numberOfLines={2}
-          style={{ lineHeight: 20 }}
-        >
-          {item.description}
-        </Text>
-
-        <Text
-          className="text-base font-semibold text-blue-600"
-          numberOfLines={1}
-        >
-          ₹ {item.price.toLocaleString()}
-        </Text>
-        <View className="mt-2 flex-row items-center">
-          <AntDesign name="calendar" size={12} color="#6B7280" />
-          <Text className="ml-1 text-xs text-gray-500">
-            {format(new Date(item.createdAt), "dd/MM/yyyy")}
-          </Text>
-        </View>
-      </View>
-
-      {hasPermission(role, "update:catalogue") ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="absolute right-2 top-2 p-1"
-              size="icon"
-            >
-              <Entypo name="dots-three-vertical" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent insets={contentInsets} className="w-56">
-            <DropdownMenuItem
-              onPress={() => setOpen(true)}
-              className="flex flex-row justify-between"
-            >
-              <Text className="font-medium">Edit</Text>
-              <AntDesign name="edit" size={24} />
-            </DropdownMenuItem>
-
-            {hasPermission(role, "delete:catalogue") ? (
-              <DropdownMenuItem
-                onPress={() => handleDelete()}
-                className="flex flex-row justify-between"
-              >
-                <Text className="font-medium">Delete</Text>
-                <AntDesign name="delete" size={24} />
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem
-              onPress={async () => {
-                try {
-                  const images = await downloadImagesToCache(
-                    item.images.map((img) => img.imageUrl),
-                  );
-
-                  Share.open({
-                    urls: images,
-                    title:
-                      "Hello, this photos were shared from React Native Share",
-                  });
-                } catch (error) {
-                  console.error(error);
-                }
-              }}
-              className="flex flex-row justify-between"
-            >
-              <Text className="font-medium">Share Photos</Text>
-              <AntDesign name="sharealt" size={24} />
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onPress={async () => {
-                try {
-                  const images = await downloadImagesToCache(
-                    item.images.map((img) => img.imageUrl),
-                  );
-                  await Share.shareSingle({
-                    title: "Title",
-                    urls: images,
-                    social: Share.Social.WHATSAPP,
-                  });
-                } catch (err) {
-                  console.error(err);
-                }
-              }}
-              className="flex flex-row justify-between"
-            >
-              <Text className="font-medium">Whatsapp</Text>
-              <FontAwesome6 name="whatsapp" size={24} />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : null}
-      {select ? (
-        <Checkbox
-          className="absolute bottom-2 right-2 p-2"
-          checked={checked}
-          onCheckedChange={handleCheck}
-        />
-      ) : null}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-96">
-          <FormProvider {...form}>
-            <View className="w-full max-w-md rounded-lg bg-white shadow-sm">
-              <Text className="text-2xl font-bold text-gray-800">
-                Update Catalogue Item
-              </Text>
-              <Text className="mb-6 mt-2 text-sm text-gray-600">
-                Update details for your Item
-              </Text>
-              <View>
-                <Controller
-                  control={form.control}
-                  name="name"
-                  render={({
-                    field: { onChange, onBlur, value },
-                    fieldState: { error },
-                  }) => {
-                    return (
-                      <View className="mb-4">
-                        <Text className="mb-1 text-sm font-medium text-gray-700">
-                          Name
-                        </Text>
-                        <TextInput
-                          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                          value={value}
-                          onChangeText={onChange}
-                          onChange={onBlur}
-                          placeholder="Enter Catalogue name"
-                        />
-                        <Text className="mb-1 text-sm text-red-500">
-                          {error?.message}
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
-                <Controller
-                  control={form.control}
-                  name="description"
-                  render={({
-                    field: { onChange, onBlur, value },
-                    fieldState: { error },
-                  }) => {
-                    return (
-                      <View className="mb-4">
-                        <Text className="mb-1 text-sm font-medium text-gray-700">
-                          Description
-                        </Text>
-                        <TextInput
-                          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          placeholder="Enter Catalogue description"
-                          multiline
-                          numberOfLines={3}
-                          textAlignVertical="top"
-                        />
-                        <Text className="mb-1 text-sm text-red-500">
-                          {error?.message}
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
-                <Controller
-                  control={form.control}
-                  name="price"
-                  render={({
-                    field: { onChange, onBlur, value },
-                    fieldState: { error },
-                  }) => (
-                    <View className="mb-2">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
-                        Price
-                      </Text>
-                      <TextInput
-                        className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                        value={value}
-                        onChangeText={onChange}
-                        onBlur={onBlur}
-                        placeholder="Enter price"
-                        keyboardType="numeric"
-                      />
-                      <Text className="mb-1 text-sm text-red-500">
-                        {error?.message}
-                      </Text>
-                    </View>
-                  )}
-                />
-                <Button
-                  onPress={form.handleSubmit(handleSubmit)}
-                  disabled={form.formState.isSubmitting || isLoading}
-                  className="mt-4 w-full rounded-md bg-blue-600 py-3"
-                >
-                  <Text className="text-center font-semibold text-white">
-                    Update Catalogue
-                  </Text>
-                </Button>
-              </View>
-            </View>
-          </FormProvider>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
-};
 
 export const SkeletonItemCard = () => {
   return (
@@ -868,18 +565,3 @@ export const SkeletonItemCard = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 200,
-  },
-  contentContainer: {
-    backgroundColor: "white",
-  },
-  itemContainer: {
-    padding: 6,
-    margin: 6,
-    backgroundColor: "#eee",
-  },
-});
