@@ -27,10 +27,7 @@ import {
   useDeleteCatalogMutation,
   useUpdateCatalogMutation,
 } from "~/store/features/api/catalogueApi";
-import {
-  catalogueApi,
-  catalogueApiV2,
-} from "~/store/features/api/v2/catalogueApiV2";
+import { catalogueApiV2 } from "~/store/features/api/v2/catalogueApiV2";
 import { useAppDispatch, useUserState } from "~/store/hooks";
 
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
@@ -189,6 +186,7 @@ export const CompactCard = ({
   limit: number;
   sortDir: "asc" | "desc";
 }) => {
+  console.log(page, limit, sortDir);
   const insets = useSafeAreaInsets();
   const [deleteCatalog] = useDeleteCatalogMutation();
   const [open, setOpen] = useState(false);
@@ -234,9 +232,13 @@ export const CompactCard = ({
                       sortDir,
                     },
                     (draft) => {
-                      draft.data.filter(
-                        (catalogue) => catalogue.id !== item.id,
+                      const index = draft.data.findIndex(
+                        (cat) => cat.id === item.id,
                       );
+                      if (index !== -1) {
+                        // Remove the item at the found index
+                        draft.data.splice(index, 1);
+                      }
                     },
                   ),
                 );

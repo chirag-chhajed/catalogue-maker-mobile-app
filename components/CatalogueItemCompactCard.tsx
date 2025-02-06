@@ -162,7 +162,12 @@ export const CompactCard = ({
                       sortDir,
                     },
                     (draft) => {
-                      draft.items.filter((cat) => cat.id !== item.id);
+                      const index = draft.items.findIndex(
+                        (cat) => cat.id === item.id,
+                      );
+                      if (index !== -1) {
+                        draft.items.splice(index, 1);
+                      }
                     },
                   ),
                 );

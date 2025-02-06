@@ -58,7 +58,7 @@ export const {
   useSearchCataloguesQuery,
   useGetCatalogItemsQuery,
   useSearchCatalogItemsQuery,
-} = catalogueApi;
+} = catalogueApiV2;
 
 // Define types for query arguments and responses
 interface PaginationParams {

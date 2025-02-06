@@ -234,7 +234,14 @@ const Index = () => {
               refreshing={
                 searchQuery.length > 0 ? isSearchLoading : isCataloguesLoading
               }
-              renderItem={({ item }) => <CompactCard item={item} />}
+              renderItem={({ item }) => (
+                <CompactCard
+                  item={item}
+                  page={page}
+                  limit={10}
+                  sortDir={sort}
+                />
+              )}
             />
           </View>
 
