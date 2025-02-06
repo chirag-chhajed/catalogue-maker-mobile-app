@@ -1,7 +1,7 @@
 import { api } from "..";
 import type { ImageType } from "../catalogueApi";
 
-export const catalogueApi = api.injectEndpoints({
+export const catalogueApiV2 = api.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
     // Fetch catalogues with cursor-based pagination

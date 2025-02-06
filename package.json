@@ -8,7 +8,7 @@
     "start": "expo start",
     "prebuild": "expo prebuild",
     "lint": "eslint \"**/*.{js,jsx,ts,tsx}\" && prettier -c \"**/*.{js,jsx,ts,tsx,json}\"",
-    "format": "eslint \"**/*.{js,jsx,ts,tsx}\" --fix && prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
+    "format": "prettier \"**/*.{js,jsx,ts,tsx,json}\" --write",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -55,14 +55,14 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "expo": "^52.0.28",
+    "expo": "^52.0.30",
     "expo-application": "~6.0.2",
     "expo-blur": "~14.0.3",
     "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.5",
     "expo-dev-client": "~5.0.11",
     "expo-device": "~7.0.2",
-    "expo-file-system": "~18.0.8",
+    "expo-file-system": "~18.0.9",
     "expo-font": "~13.0.3",
     "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.4",
@@ -92,6 +92,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-share": "^12.0.3",
     "react-native-svg": "15.8.0",
+    "react-native-view-shot": "~4.0.3",
     "react-native-web": "~0.19.10",
     "react-redux": "^9.2.0",
     "sonner-native": "^0.16.2",
@@ -116,5 +117,11 @@
     "extends": "universe/native",
     "root": true
   },
-  "private": true
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "protobufjs",
+      "react-native-nitro-modules"
+    ]
+  }
 }

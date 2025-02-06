@@ -27,7 +27,11 @@ import {
   useDeleteCatalogMutation,
   useUpdateCatalogMutation,
 } from "~/store/features/api/catalogueApi";
-import { useUserState } from "~/store/hooks";
+import {
+  catalogueApi,
+  catalogueApiV2,
+} from "~/store/features/api/v2/catalogueApiV2";
+import { useAppDispatch, useUserState } from "~/store/hooks";
 
 const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
 
@@ -174,12 +178,23 @@ const UpdateCatalogueForm = ({
   );
 };
 
-export const CompactCard = ({ item }: { item: CardItem }) => {
+export const CompactCard = ({
+  item,
+  page,
+  limit,
+  sortDir,
+}: {
+  item: CardItem;
+  page: number;
+  limit: number;
+  sortDir: "asc" | "desc";
+}) => {
   const insets = useSafeAreaInsets();
   const [deleteCatalog] = useDeleteCatalogMutation();
   const [open, setOpen] = useState(false);
   const [updateCatalog, { isLoading }] = useUpdateCatalogMutation();
   const { role } = useUserState();
+  const dispatch = useAppDispatch();
 
   const contentInsets = {
     top: insets.top,
@@ -210,6 +225,21 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
               loading: "Deleting...",
               success: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                dispatch(
+                  catalogueApiV2.util.updateQueryData(
+                    "getCatalogues",
+                    {
+                      page,
+                      limit,
+                      sortDir,
+                    },
+                    (draft) => {
+                      draft.data.filter(
+                        (catalogue) => catalogue.id !== item.id,
+                      );
+                    },
+                  ),
+                );
                 return "Catalogue deleted successfully";
               },
               error: "Failed to delete catalogue",
@@ -223,10 +253,27 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
   };
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
+    // const hello = await updateCatalog({ ...data, id: item.id }).unwrap();
     toast.promise(updateCatalog({ ...data, id: item.id }).unwrap(), {
-      success: () => {
+      success: (hello) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setOpen(false);
+        dispatch(
+          catalogueApiV2.util.updateQueryData(
+            "getCatalogues",
+            { page, limit, sortDir },
+            (draft) => {
+              const index = draft.data.findIndex((cat) => cat.id === item.id);
+              if (index !== -1) {
+                draft.data[index] = {
+                  ...draft.data[index],
+                  name: data.name,
+                  description: data.description || "",
+                };
+              }
+            },
+          ),
+        );
         return "Catalogue updated successfully";
       },
       error: "Failed to update Catalogue",

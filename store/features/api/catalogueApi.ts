@@ -1,44 +1,92 @@
 import { api } from ".";
+import { catalogueApiV2 } from "./v2/catalogueApiV2";
 
 export const catalogueApi = api.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
-    createCatalog: builder.mutation<void, CreateOrgArg>({
+    createCatalog: builder.mutation<
+      {
+        name: string;
+        description: string | null;
+        id: string;
+        organizationId: string;
+        createdAt: Date;
+      },
+      CreateOrgArg
+    >({
       query: ({ name, description }) => ({
         method: "POST",
         url: "/catalogue/create",
         body: { name, description },
       }),
-      invalidatesTags: ["Catalogue"],
+      async onQueryStarted(_, { dispatch, queryFulfilled }) {
+        try {
+          const { data: newCatalogue } = await queryFulfilled;
+
+          // Update getCatalogues cache
+          dispatch(
+            catalogueApiV2.util.updateQueryData(
+              "getCatalogues",
+              { page: 1, limit: 10, sortDir: "desc" },
+              (draft) => {
+                draft.data.unshift({
+                  id: newCatalogue.id,
+                  name: newCatalogue.name,
+                  description: newCatalogue.description || "",
+                  createdAt: new Date(newCatalogue.createdAt).toISOString(),
+                  images: [],
+                });
+              },
+            ),
+          );
+        } catch {}
+      },
     }),
-    getCatalog: builder.query<GetCatalogues, void>({
-      query: () => "/catalogue/",
-      providesTags: ["Catalogue"],
-    }),
-    // getCatalogItems: builder.query<GetCatalogItems, { id: string }>({
-    //   query: ({ id }) => `/catalogue/${id}`,
-    //   providesTags: ["Item"],
-    // }),
     deleteCatalog: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
         method: "DELETE",
         url: `/catalogue/${id}`,
       }),
-      invalidatesTags: ["Catalogue"],
     }),
-    updateCatalog: builder.mutation<void, CreateOrgArg & { id: string }>({
+    updateCatalog: builder.mutation<
+      {
+        id: string;
+        name: string;
+        description: string | null;
+        organizationId: string;
+        createdBy: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      },
+      CreateOrgArg & { id: string }
+    >({
       query: ({ name, description, id }) => ({
         method: "PUT",
         url: `/catalogue/${id}`,
-        body: {
-          name,
-          description,
-        },
+        body: { name, description },
       }),
-      invalidatesTags: ["Catalogue"],
     }),
     createCatalogItem: builder.mutation<
-      void,
+      {
+        images: {
+          id: string;
+          organizationId: string;
+          createdAt: Date;
+          deletedAt: Date | null;
+          imageUrl: string;
+          blurhash: string | null;
+          itemId: string;
+        }[];
+        name: string;
+        description: string | null;
+        id: string;
+        price: number;
+        catalogueId: string;
+        organizationId: string;
+        createdBy: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      },
       { id: string; formData: FormData }
     >({
       query: ({ formData, id }) => ({
@@ -46,10 +94,47 @@ export const catalogueApi = api.injectEndpoints({
         url: `/catalogue/${id}/create-item`,
         body: formData,
       }),
-      invalidatesTags: ["Item"],
+      async onQueryStarted({ id }, { dispatch, queryFulfilled }) {
+        try {
+          const { data: newItem } = await queryFulfilled;
+
+          // Update getCatalogItems cache
+          dispatch(
+            catalogueApiV2.util.updateQueryData(
+              "getCatalogItems",
+              { id, page: 1, limit: 10, sortDir: "desc", priceSort: "asc" },
+              (draft) => {
+                draft.items.unshift({
+                  id: newItem.id,
+                  name: newItem.name,
+                  description: newItem.description,
+                  price: String(newItem.price),
+                  images: newItem.images.map((img) => ({
+                    id: img.id,
+                    imageUrl: img.imageUrl,
+                    blurhash: img.blurhash,
+                  })),
+                  createdAt: newItem.createdAt,
+                });
+              },
+            ),
+          );
+        } catch {}
+      },
     }),
     updateCatalogItem: builder.mutation<
-      void,
+      {
+        id: string;
+        catalogueId: string;
+        organizationId: string;
+        name: string;
+        description: string | null;
+        price: string | null;
+        metadata: unknown;
+        createdBy: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+      },
       {
         id: string;
         name: string;
@@ -63,14 +148,12 @@ export const catalogueApi = api.injectEndpoints({
         url: `/catalogue/items/${id}`,
         body: args,
       }),
-      invalidatesTags: ["Item"],
     }),
     deleteCatalogItem: builder.mutation<void, { id: string }>({
       query: ({ id }) => ({
         method: "DELETE",
         url: `/catalogue/delete-item/${id}`,
       }),
-      invalidatesTags: ["Item"],
     }),
   }),
 });
@@ -80,8 +163,6 @@ export const {
   useCreateCatalogMutation,
   useDeleteCatalogItemMutation,
   useDeleteCatalogMutation,
-  // useGetCatalogItemsQuery,
-  useGetCatalogQuery,
   useUpdateCatalogItemMutation,
   useUpdateCatalogMutation,
 } = catalogueApi;
@@ -89,39 +170,9 @@ type CreateOrgArg = {
   name: string;
   description?: string;
 };
-type GetCatalogues = {
-  name: string;
-  description: string | null;
-  organizationId: string;
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  createdBy: string;
-  deletedAt: Date | null;
-  images: ImageType[];
-}[];
+
 export type ImageType = {
   id: string;
   imageUrl: string;
   blurhash: string | null;
-};
-type GetCatalogItems = {
-  catalogueDetail: {
-    description: string | null;
-    id: string;
-    name: string;
-    createdAt: Date;
-    updatedAt: Date;
-    createdBy: string;
-    organizationId: string;
-    deletedAt: Date | null;
-  };
-  items: {
-    id: string;
-    name: string;
-    description: string | null;
-    price: string;
-    images: ImageType[];
-    createdAt: Date;
-  }[];
 };

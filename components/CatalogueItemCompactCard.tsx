@@ -31,6 +31,7 @@ import {
   useDeleteCatalogItemMutation,
   useUpdateCatalogItemMutation,
 } from "~/store/features/api/catalogueApi";
+import { catalogueApiV2 } from "~/store/features/api/v2/catalogueApiV2";
 import { addImages, removeImages } from "~/store/features/sharableImageSlice";
 import { useAppDispatch, useUserState } from "~/store/hooks";
 
@@ -150,6 +151,21 @@ export const CompactCard = ({
               loading: "Deleting...",
               success: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                dispatch(
+                  catalogueApiV2.util.updateQueryData(
+                    "getCatalogItems",
+                    {
+                      id,
+                      limit: 10,
+                      page,
+                      priceSort,
+                      sortDir,
+                    },
+                    (draft) => {
+                      draft.items.filter((cat) => cat.id !== item.id);
+                    },
+                  ),
+                );
                 return "Item deleted successfully";
               },
               error: "Failed to delete Item",
@@ -168,6 +184,31 @@ export const CompactCard = ({
         success: () => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           setOpen(false);
+          dispatch(
+            catalogueApiV2.util.updateQueryData(
+              "getCatalogItems",
+              {
+                id,
+                limit: 10,
+                page,
+                priceSort,
+                sortDir,
+              },
+              (draft) => {
+                const index = draft.items.findIndex(
+                  (cat) => cat.id === item.id,
+                );
+                if (index !== -1) {
+                  draft.items[index] = {
+                    ...draft.items[index],
+                    name: data.name,
+                    description: data.description || "",
+                    price: String(data.price),
+                  };
+                }
+              },
+            ),
+          );
           return "Item updated successfully";
         },
         error: "Failed to update Item",
