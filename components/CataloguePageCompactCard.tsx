@@ -186,7 +186,6 @@ export const CompactCard = ({
   limit: number;
   sortDir: "asc" | "desc";
 }) => {
-  console.log(page, limit, sortDir);
   const insets = useSafeAreaInsets();
   const [deleteCatalog] = useDeleteCatalogMutation();
   const [open, setOpen] = useState(false);

@@ -27,11 +27,14 @@ import {
 } from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
+import { Switch } from "~/components/ui/switch";
 import { Text } from "~/components/ui/text";
 import {
   downloadImagesToCache,
   downloadImagesToGallery,
+  downloadInfoImagesToGallery,
 } from "~/lib/downloadImagesToCache";
+import { PolaroidImageCapture } from "~/lib/processImages";
 import {
   useGetCatalogItemsQuery,
   useSearchCatalogItemsQuery,
@@ -177,6 +180,8 @@ export default function DetailsScreen() {
   };
   const [selectionMode, setSelectionMode] = useState(false);
   const [index, setIndex] = useState(-1);
+  const [addInfoToImages, setAddInfoToImages] = useState(false);
+  const [processedImages, setProcessedImages] = useState<string[]>([]);
   useEffect(() => {
     if (!selectionMode) {
       dispatch(clearItems(id));
@@ -248,6 +253,7 @@ export default function DetailsScreen() {
               }),
             );
           }}
+          hitSlop={20}
         />
       </View>
     );
@@ -270,26 +276,42 @@ export default function DetailsScreen() {
     }
   };
 
-  // For sharing from the BottomSheet
+  // Modify the handleShare function
   const handleShare = async () => {
     try {
-      const cachedImages = await downloadImagesToCache(
-        checkedImages?.map((image) => image.imageUrl),
-      );
+      if (!checkedImages?.length) return;
 
-      Share.open({
+      if (addInfoToImages) {
+        // Get full item info for checked images
+        await Share.open({
+          urls: processedImages,
+        });
+      }
+      const cachedImages = await downloadImagesToCache(
+        checkedImages.map((image) => image.imageUrl),
+      );
+      await Share.open({
         urls: cachedImages,
       });
     } catch (error) {
       console.log(error);
+      toast.error("Failed to share images");
     }
   };
 
-  // For WhatsApp sharing
+  // Modify the WhatsApp share handler similarly
   const handleWhatsAppShare = async () => {
     try {
+      if (!checkedImages?.length) return;
+
+      if (addInfoToImages) {
+        await Share.shareSingle({
+          urls: processedImages,
+          social: Share.Social.WHATSAPP,
+        });
+      }
       const cachedImages = await downloadImagesToCache(
-        checkedImages?.map((img) => img.imageUrl),
+        checkedImages.map((img) => img.imageUrl),
       );
 
       await Share.shareSingle({
@@ -298,6 +320,7 @@ export default function DetailsScreen() {
       });
     } catch (err) {
       console.error(err);
+      toast.error("Failed to share on WhatsApp");
     }
   };
 
@@ -324,7 +347,7 @@ export default function DetailsScreen() {
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="The searchbar doesn't work for now"
+                placeholder="Search for items..."
                 style={{ flex: 1 }}
                 className=" px-4 py-2 focus:border-blue-500"
               />
@@ -463,6 +486,17 @@ export default function DetailsScreen() {
               searchQuery.length > 0 && searchData?.items?.length === 0
             }
           />
+          {/* <View style={{ position: "fixed", left: -9999 }}> */}
+          {checkedImages?.length > 0 ? (
+            <PolaroidImageCapture
+              groupId={id as string}
+              onCaptureComplete={(results: string[]) => {
+                console.log(results);
+                setProcessedImages(results);
+              }}
+            />
+          ) : null}
+          {/* </View> */}
         </View>
       )}
       {/* Fixed bottom buttons */}
@@ -495,6 +529,17 @@ export default function DetailsScreen() {
             </Text>
           }
         />
+        {checkedImages?.length > 0 && (
+          <View className="absolute inset-x-0 bottom-20 flex-row items-center justify-center gap-2 px-4">
+            <Text className="text-sm font-medium text-gray-700">
+              Add Info to Images
+            </Text>
+            <Switch
+              checked={addInfoToImages}
+              onCheckedChange={setAddInfoToImages}
+            />
+          </View>
+        )}
         {checkedImages?.length > 0 ? (
           <View className="absolute inset-x-0 bottom-4 flex-row justify-center gap-6 border-gray-200 pt-4">
             <Pressable
@@ -511,10 +556,16 @@ export default function DetailsScreen() {
             <Pressable
               onPress={async () => {
                 try {
-                  await downloadImagesToGallery(
-                    checkedImages?.map((img) => img.imageUrl),
-                  );
-                  toast.success("Images downloaded to gallery");
+                  if (!checkedImages?.length) return;
+                  if (addInfoToImages) {
+                    await downloadInfoImagesToGallery(processedImages);
+                    toast.success("Images downloaded to gallery");
+                  } else {
+                    await downloadImagesToGallery(
+                      checkedImages?.map((img) => img.imageUrl),
+                    );
+                    toast.success("Images downloaded to gallery");
+                  }
 
                   // Alert.alert("Success", "Images downloaded to gallery");
                 } catch {

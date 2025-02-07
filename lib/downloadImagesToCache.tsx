@@ -73,3 +73,48 @@ export const downloadImagesToGallery = async (
     throw error;
   }
 };
+
+export const downloadInfoImagesToGallery = async (
+  imageUrls: string[],
+): Promise<void> => {
+  try {
+    // Request permissions once for all operations
+    const { status } = await MediaLibrary.requestPermissionsAsync(true, [
+      "photo",
+    ]);
+
+    if (status !== "granted") {
+      throw new Error("Gallery permission denied");
+    }
+
+    // Create album first if it doesn't exist
+    const album = await MediaLibrary.getAlbumAsync("Catalogue Maker");
+
+    // Save all images and collect their assets
+    const assets = await Promise.all(
+      imageUrls.map(async (imageUri) => {
+        return await MediaLibrary.createAssetAsync(imageUri);
+      }),
+    );
+
+    // Create or add to album
+    if (album) {
+      // Add all assets to existing album
+      await MediaLibrary.addAssetsToAlbumAsync(assets, album, false);
+    } else {
+      // Create new album with all assets
+      await MediaLibrary.createAlbumAsync("Catalogue Maker", assets[0], false);
+      const newAlbum = await MediaLibrary.getAlbumAsync("Catalogue Maker");
+      if (assets.length > 1) {
+        await MediaLibrary.addAssetsToAlbumAsync(
+          assets.slice(1),
+          newAlbum,
+          false,
+        );
+      }
+    }
+  } catch (error) {
+    console.error("Error downloading images:", error);
+    throw error;
+  }
+};

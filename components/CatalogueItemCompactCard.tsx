@@ -104,6 +104,9 @@ export const CompactCard = ({
             imageUrl: img.imageUrl,
             blurhash: img.blurhash,
             checked: true,
+            name: item.name,
+            description: item.description ?? "",
+            price: item.price,
           })),
         }),
       );
@@ -355,6 +358,7 @@ export const CompactCard = ({
           className="absolute bottom-2 right-2 p-2"
           checked={checked}
           onCheckedChange={handleCheck}
+          hitSlop={30}
         />
       ) : null}
       <Dialog open={open} onOpenChange={setOpen}>

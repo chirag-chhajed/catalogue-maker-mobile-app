@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+
 import { useAppSelector } from "../hooks";
 
 type SharrableImageGroup = {
@@ -10,6 +11,9 @@ type SharrableImageGroup = {
       imageUrl: string;
       blurhash: string | null;
       checked: boolean;
+      name: string;
+      description: string;
+      price: string;
     }[];
   }[];
 };
@@ -30,6 +34,9 @@ export const sharableImageSlice = createSlice({
           imageUrl: string;
           blurhash: string | null;
           checked: boolean;
+          name: string;
+          description: string;
+          price: string;
         }[];
       }>,
     ) => {
