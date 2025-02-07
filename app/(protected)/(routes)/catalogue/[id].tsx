@@ -491,7 +491,7 @@ export default function DetailsScreen() {
             <PolaroidImageCapture
               groupId={id as string}
               onCaptureComplete={(results: string[]) => {
-                console.log(results);
+                // console.log(results);
                 setProcessedImages(results);
               }}
             />
