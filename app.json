@@ -3,7 +3,7 @@
     "newArchEnabled": true,
     "name": "Roop Rangi Women's Ethnic Apparels",
     "slug": "catalog-maker",
-    "version": "1.3.1",
+    "version": "2.0.0",
     "scheme": "hello",
     "plugins": [
       "expo-router",
@@ -46,7 +46,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#bd9ce4"
+      "backgroundColor": "#F6F4F0"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -59,7 +59,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/foreground.png",
-        "backgroundColor": "#bd9ce4"
+        "backgroundColor": "#F6F4F0"
       },
       "package": "com.cpcjain.mobile",
       "googleServicesFile": "./google-services.json",

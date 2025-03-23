@@ -7,7 +7,7 @@ const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginArg>({
       query: ({ name, email, idToken }) => ({
-        url: "v2/auth/login",
+        url: "/auth/login",
         method: "POST",
         body: { name, email, idToken },
       }),
