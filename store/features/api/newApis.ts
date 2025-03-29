@@ -1,0 +1,529 @@
+import { api } from ".";
+
+const newApis = api.injectEndpoints({
+  endpoints: (build) => ({
+    postApiV1AuthLogin: build.mutation<
+      PostApiV1AuthLoginApiResponse,
+      PostApiV1AuthLoginApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/auth/login`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    getApiV1AuthRefresh: build.query<
+      GetApiV1AuthRefreshApiResponse,
+      GetApiV1AuthRefreshApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/auth/refresh`,
+        params: {
+          organizationId: queryArg.organizationId,
+        },
+      }),
+    }),
+    postApiV1AuthLogout: build.mutation<
+      PostApiV1AuthLogoutApiResponse,
+      PostApiV1AuthLogoutApiArg
+    >({
+      query: () => ({ url: `/api/v1/auth/logout`, method: "POST" }),
+    }),
+    getApiV1Organisation: build.query<
+      GetApiV1OrganisationApiResponse,
+      GetApiV1OrganisationApiArg
+    >({
+      query: () => ({ url: `/api/v1/organisation` }),
+    }),
+    postApiV1Organisation: build.mutation<
+      PostApiV1OrganisationApiResponse,
+      PostApiV1OrganisationApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/organisation`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    deleteApiV1OrganisationRemoveUserByUserId: build.mutation<
+      DeleteApiV1OrganisationRemoveUserByUserIdApiResponse,
+      DeleteApiV1OrganisationRemoveUserByUserIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/organisation/remove-user/${queryArg.userId}`,
+        method: "DELETE",
+      }),
+    }),
+    postApiV1Catalogue: build.mutation<
+      PostApiV1CatalogueApiResponse,
+      PostApiV1CatalogueApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    getApiV1Catalogue: build.query<
+      GetApiV1CatalogueApiResponse,
+      GetApiV1CatalogueApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue`,
+        params: {
+          cursor: queryArg.cursor,
+          order: queryArg.order,
+        },
+      }),
+    }),
+    postApiV1CatalogueByCatalogueId: build.mutation<
+      PostApiV1CatalogueByCatalogueIdApiResponse,
+      PostApiV1CatalogueByCatalogueIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}`,
+        method: "POST",
+        body: queryArg.body,
+        params: {
+          name: queryArg.name,
+          description: queryArg.description,
+          price: queryArg.price,
+        },
+      }),
+    }),
+    putApiV1CatalogueByCatalogueId: build.mutation<
+      PutApiV1CatalogueByCatalogueIdApiResponse,
+      PutApiV1CatalogueByCatalogueIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}`,
+        method: "PUT",
+        body: queryArg.body,
+      }),
+    }),
+    deleteApiV1CatalogueByCatalogueId: build.mutation<
+      DeleteApiV1CatalogueByCatalogueIdApiResponse,
+      DeleteApiV1CatalogueByCatalogueIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}`,
+        method: "DELETE",
+        body: queryArg.body,
+      }),
+    }),
+    getApiV1CatalogueAll: build.query<
+      GetApiV1CatalogueAllApiResponse,
+      GetApiV1CatalogueAllApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/all`,
+        params: {
+          cursor: queryArg.cursor,
+          order: queryArg.order,
+        },
+      }),
+    }),
+    postApiV1CatalogueBulkUpdatePrices: build.mutation<
+      PostApiV1CatalogueBulkUpdatePricesApiResponse,
+      PostApiV1CatalogueBulkUpdatePricesApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/bulk-update-prices`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    postApiV1CatalogueBulkTransferItems: build.mutation<
+      PostApiV1CatalogueBulkTransferItemsApiResponse,
+      PostApiV1CatalogueBulkTransferItemsApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/bulk-transfer-items`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    deleteApiV1CatalogueBulkDeleteItems: build.mutation<
+      DeleteApiV1CatalogueBulkDeleteItemsApiResponse,
+      DeleteApiV1CatalogueBulkDeleteItemsApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/bulk-delete-items`,
+        method: "DELETE",
+        body: queryArg.body,
+      }),
+    }),
+    putApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
+      PutApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
+      PutApiV1CatalogueByCatalogueIdAndItemIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
+        method: "PUT",
+        body: queryArg.body,
+      }),
+    }),
+    deleteApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
+      DeleteApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
+      DeleteApiV1CatalogueByCatalogueIdAndItemIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
+        method: "DELETE",
+        body: queryArg.body,
+      }),
+    }),
+    getApiV1CatalogueSearchItemsByCatalogueId: build.query<
+      GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse,
+      GetApiV1CatalogueSearchItemsByCatalogueIdApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/search-items/${queryArg.catalogueId}`,
+        params: {
+          search: queryArg.search,
+        },
+      }),
+    }),
+    getApiV1CatalogueSearchItems: build.query<
+      GetApiV1CatalogueSearchItemsApiResponse,
+      GetApiV1CatalogueSearchItemsApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/search-items`,
+        params: {
+          search: queryArg.search,
+        },
+      }),
+    }),
+    getApiV1CatalogueSearch: build.query<
+      GetApiV1CatalogueSearchApiResponse,
+      GetApiV1CatalogueSearchApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/catalogue/search`,
+        params: {
+          search: queryArg.search,
+        },
+      }),
+    }),
+  }),
+  overrideExisting: false,
+});
+export { newApis };
+export type PostApiV1AuthLoginApiResponse =
+  /** status 200 Successful login response */
+  | {
+      accessToken: string;
+      user: {
+        id: string;
+        name: string | null;
+        email: string;
+      };
+    }
+  | /** status 204 User already exists */ {
+      success: false;
+      message: string;
+    };
+export type PostApiV1AuthLoginApiArg = {
+  body: {
+    name: string;
+    email: string;
+    idToken: string;
+  };
+};
+export type GetApiV1AuthRefreshApiResponse =
+  /** status 200 Token refresh successful */ {
+    accessToken: string;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
+  };
+export type GetApiV1AuthRefreshApiArg = {
+  organizationId?: string;
+};
+export type PostApiV1AuthLogoutApiResponse =
+  /** status 200 Successfully logged out */ {
+    success: boolean;
+    message: string;
+  };
+export type PostApiV1AuthLogoutApiArg = void;
+export type GetApiV1OrganisationApiResponse =
+  /** status 200 Organisation details */ {
+    orgId: string;
+    name: string;
+    description?: string;
+    role: string;
+  }[];
+export type GetApiV1OrganisationApiArg = void;
+export type PostApiV1OrganisationApiResponse =
+  /** status 201 Organisation created successfully */ {
+    message: string;
+  };
+export type PostApiV1OrganisationApiArg = {
+  body: {
+    name: string;
+    description?: string;
+  };
+};
+export type DeleteApiV1OrganisationRemoveUserByUserIdApiResponse = unknown;
+export type DeleteApiV1OrganisationRemoveUserByUserIdApiArg = {
+  userId: string;
+};
+export type PostApiV1CatalogueApiResponse =
+  /** status 201 Catalogue created successfully */ {
+    catalogueId: string;
+    orgId: string;
+    name: string;
+    description?: string;
+    createdBy: string;
+    createdAt: number;
+    updatedAt: number;
+  };
+export type PostApiV1CatalogueApiArg = {
+  body: {
+    name: string;
+    description?: string;
+  };
+};
+export type GetApiV1CatalogueApiResponse =
+  /** status 200 List of catalogues retrieved successfully */ {
+    items: {
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      createdBy: string;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      images: {
+        imageUrl: string;
+        blurhash?: string;
+        imageId: string;
+        catalogueId: string;
+        itemId: string;
+      }[];
+    }[];
+    nextCursor: string | null;
+  };
+export type GetApiV1CatalogueApiArg = {
+  cursor?: string;
+  order?: "asc" | "desc";
+};
+export type PostApiV1CatalogueByCatalogueIdApiResponse =
+  /** status 201 Catalogue item created successfully */ {
+    message: string;
+  };
+export type PostApiV1CatalogueByCatalogueIdApiArg = {
+  catalogueId: string;
+  name: string;
+  description?: string;
+  price: number;
+  body: FormData;
+};
+export type PutApiV1CatalogueByCatalogueIdApiResponse =
+  /** status 200 Catalogue updated successfully */ {
+    message: string;
+  };
+export type PutApiV1CatalogueByCatalogueIdApiArg = {
+  catalogueId: string;
+  body: {
+    name: string;
+    description?: string;
+    createdAt: number;
+  };
+};
+export type DeleteApiV1CatalogueByCatalogueIdApiResponse = unknown;
+export type DeleteApiV1CatalogueByCatalogueIdApiArg = {
+  catalogueId: string;
+  body: {
+    createdAt: number;
+  };
+};
+export type GetApiV1CatalogueAllApiResponse =
+  /** status 200 All items retrieved successfully */ {
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+    nextCursor: string | null;
+  };
+export type GetApiV1CatalogueAllApiArg = {
+  cursor?: string;
+  order?: "asc" | "desc";
+};
+export type PostApiV1CatalogueBulkUpdatePricesApiResponse =
+  /** status 200 Prices updated successfully */ {
+    message: string;
+  };
+export type PostApiV1CatalogueBulkUpdatePricesApiArg = {
+  body: {
+    items: {
+      catalogueId: string;
+      itemId: string;
+      createdAt: number;
+    }[];
+    operation: "clone" | "update";
+    value: number;
+    mode: "absolute" | "percentage";
+    direction: "increase" | "decrease";
+    newCatalogueId?: string;
+  };
+};
+export type PostApiV1CatalogueBulkTransferItemsApiResponse =
+  /** status 200 Items transferred successfully */ {
+    message: string;
+  };
+export type PostApiV1CatalogueBulkTransferItemsApiArg = {
+  body: {
+    items: {
+      catalogueId: string;
+      itemId: string;
+      createdAt: number;
+    }[];
+    newCatalogueId?: string;
+    operation: "clone" | "transfer";
+  };
+};
+export type DeleteApiV1CatalogueBulkDeleteItemsApiResponse =
+  /** status 200 Items deleted successfully */ {
+    message: string;
+  };
+export type DeleteApiV1CatalogueBulkDeleteItemsApiArg = {
+  body: {
+    items: {
+      catalogueId: string;
+      itemId: string;
+      createdAt: number;
+    }[];
+  };
+};
+export type PutApiV1CatalogueByCatalogueIdAndItemIdApiResponse =
+  /** status 200 Catalogue item updated successfully */ {
+    message: string;
+  };
+export type PutApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
+  catalogueId: string;
+  itemId: string;
+  body: {
+    name: string;
+    description?: string;
+    price: number;
+    createdAt: number;
+  };
+};
+export type DeleteApiV1CatalogueByCatalogueIdAndItemIdApiResponse = unknown;
+export type DeleteApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
+  catalogueId: string;
+  itemId: string;
+  body: {
+    createdAt: number;
+  };
+};
+export type GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse =
+  /** status 200 Catalogues searched successfully */ {
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+  };
+export type GetApiV1CatalogueSearchItemsByCatalogueIdApiArg = {
+  catalogueId: string;
+  search: string;
+};
+export type GetApiV1CatalogueSearchItemsApiResponse =
+  /** status 200 Catalogues searched successfully */ {
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+  };
+export type GetApiV1CatalogueSearchItemsApiArg = {
+  search: string;
+};
+export type GetApiV1CatalogueSearchApiResponse =
+  /** status 200 Catalogues searched successfully */ {
+    items: {
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      createdBy: string;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      images: {
+        imageUrl: string;
+        blurhash?: string;
+        imageId: string;
+        catalogueId: string;
+        itemId: string;
+      }[];
+    }[];
+  };
+export type GetApiV1CatalogueSearchApiArg = {
+  search: string;
+};
+export const {
+  usePostApiV1AuthLoginMutation,
+  useGetApiV1AuthRefreshQuery,
+  usePostApiV1AuthLogoutMutation,
+  useGetApiV1OrganisationQuery,
+  usePostApiV1OrganisationMutation,
+  useDeleteApiV1OrganisationRemoveUserByUserIdMutation,
+  usePostApiV1CatalogueMutation,
+  useGetApiV1CatalogueQuery,
+  usePostApiV1CatalogueByCatalogueIdMutation,
+  usePutApiV1CatalogueByCatalogueIdMutation,
+  useDeleteApiV1CatalogueByCatalogueIdMutation,
+  useGetApiV1CatalogueAllQuery,
+  usePostApiV1CatalogueBulkUpdatePricesMutation,
+  usePostApiV1CatalogueBulkTransferItemsMutation,
+  useDeleteApiV1CatalogueBulkDeleteItemsMutation,
+  usePutApiV1CatalogueByCatalogueIdAndItemIdMutation,
+  useDeleteApiV1CatalogueByCatalogueIdAndItemIdMutation,
+  useGetApiV1CatalogueSearchItemsByCatalogueIdQuery,
+  useGetApiV1CatalogueSearchItemsQuery,
+  useGetApiV1CatalogueSearchQuery,
+} = injectedRtkApi;

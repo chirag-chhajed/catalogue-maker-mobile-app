@@ -34,7 +34,14 @@
           "savePhotosPermission": "Allow Catalog Maker to save photos."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F6F4F0",
+          "image": "./assets/background.png"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -43,11 +50,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F6F4F0"
-    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "infoPlist": {
