@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, AppState, View } from "react-native";
 
 import { api } from "~/store/features/api";
-import { useRefreshQuery } from "~/store/features/api/authApi";
+import { useGetApiV1AuthRefreshQuery } from "~/store/features/api/newApis";
 import { useAppDispatch, useOrganizationIdSelector } from "~/store/hooks";
 
 const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -18,7 +18,7 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => clearTimeout(timer);
   }, [organizationId]);
 
-  const { isLoading } = useRefreshQuery(
+  const { isLoading } = useGetApiV1AuthRefreshQuery(
     {
       organizationId,
     },

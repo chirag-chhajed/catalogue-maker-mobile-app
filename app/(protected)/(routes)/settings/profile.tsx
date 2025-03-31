@@ -2,12 +2,12 @@ import { View, Text } from "react-native";
 import { toast } from "sonner-native";
 
 import { Button } from "~/components/ui/button";
-import { useLogoutMutation } from "~/store/features/api/authApi";
+import { usePostApiV1AuthLogoutMutation } from "~/store/features/api/newApis";
 import { useUserState } from "~/store/hooks";
 
 const Profile = () => {
   const { email, name, role } = useUserState() || {};
-  const [logout, { isLoading }] = useLogoutMutation();
+  const [logout, { isLoading }] = usePostApiV1AuthLogoutMutation();
 
   return (
     <View className="flex-1 bg-gray-50 p-4">

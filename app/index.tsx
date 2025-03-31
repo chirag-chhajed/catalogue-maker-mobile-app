@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
-import { useLoginMutation } from "~/store/features/api/authApi";
+import { usePostApiV1AuthLoginMutation } from "~/store/features/api/newApis";
 import { changeAccessToken } from "~/store/features/hello";
 import {
   useAppDispatch,
@@ -37,7 +37,7 @@ export default function App() {
     // Sign-in the user with the credential
     return await auth().signInWithCredential(googleCredential);
   }
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading }] = usePostApiV1AuthLoginMutation();
   const router = useRouter();
   const { accessToken } = useAppSelector((state) => state.hello);
   const organizationId = useOrganizationIdSelector();
@@ -59,11 +59,12 @@ export default function App() {
               try {
                 const { user } = await onGoogleButtonPress();
                 const idToken = await user.getIdToken();
-
                 const data = await login({
-                  email: user.email,
-                  name: user.displayName ?? "aefiowneo",
-                  idToken: idToken ?? "",
+                  body: {
+                    email: user.email,
+                    name: user.displayName ?? "aefiowneo",
+                    idToken: idToken ?? "",
+                  },
                 }).unwrap();
 
                 dispatch(changeAccessToken({ accessToken: data.accessToken }));

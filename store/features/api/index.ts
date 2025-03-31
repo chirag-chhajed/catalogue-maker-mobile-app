@@ -11,7 +11,7 @@ import { clearOrganizationId } from "../organizationId";
 
 import type { RootState } from "~/store/store";
 
-const baseUrl = "https://q59rdfvb-3000.inc1.devtunnels.ms/api";
+const baseUrl = "https://q59rdfvb-3000.inc1.devtunnels.ms/";
 const baseQuery = fetchBaseQuery({
   baseUrl,
   credentials: "include",

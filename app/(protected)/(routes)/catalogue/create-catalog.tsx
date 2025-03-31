@@ -8,7 +8,7 @@ import { toast } from "sonner-native";
 import * as z from "zod";
 
 import { Button } from "~/components/ui/button";
-import { useCreateCatalogMutation } from "~/store/features/api/catalogueApi";
+import { usePostApiV1CatalogueMutation } from "~/store/features/api/newApis";
 
 export default function CreateCatalogForm() {
   const schema = z.object({
@@ -24,7 +24,7 @@ export default function CreateCatalogForm() {
       .optional(),
   });
 
-  const [create, { isLoading }] = useCreateCatalogMutation();
+  const [create, { isLoading }] = usePostApiV1CatalogueMutation();
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -35,15 +35,23 @@ export default function CreateCatalogForm() {
   });
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    toast.promise(create(data).unwrap(), {
-      success: () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.replace("/(protected)/(routes)/catalogue");
-        return "Catalogue created successfully";
+    toast.promise(
+      create({
+        body: {
+          name: data.name,
+          description: data.description,
+        },
+      }).unwrap(),
+      {
+        success: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.replace("/(protected)/(routes)/catalogue");
+          return "Catalogue created successfully";
+        },
+        error: "Failed to create Catalogue",
+        loading: "Creating Catalogue...",
       },
-      error: "Failed to create Catalogue",
-      loading: "Creating Catalogue...",
-    });
+    );
   };
 
   return (

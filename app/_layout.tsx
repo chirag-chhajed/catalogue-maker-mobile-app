@@ -5,20 +5,27 @@ import { Stack } from "expo-router";
 // import { PostHogProvider } from "posthog-react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import { View, Text } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
 
 import AuthProvider from "~/components/AuthProvider";
 import { ReduxProvider } from "~/store/provider";
 import "../ReactotronConfig";
+import { Image } from "expo-image";
+import splashScreenImg from "~/assets/splash.png";
 
 SplashScreen.hide();
 
 const SplashScreenView = () => {
+  const { width, height } = useWindowDimensions();
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Splash Screen</Text>
+      <Image
+        contentFit="cover"
+        source={splashScreenImg}
+        style={{ width, height }}
+      />
     </View>
   );
 };

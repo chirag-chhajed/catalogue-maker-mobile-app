@@ -7,19 +7,22 @@ import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
-import { useGetOrgsQuery } from "~/store/features/api/organizationApi";
+import { useGetApiV1OrganisationQuery } from "~/store/features/api/newApis";
 import { useOrganitionIdDispatch } from "~/store/hooks";
 
 const Index = () => {
   // const [organizationsExist, setOrganizationsExist] = useState(true);
-  const { data: organizations, isLoading, refetch } = useGetOrgsQuery();
+  const {
+    data: organizations,
+    isLoading,
+    refetch,
+  } = useGetApiV1OrganisationQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   if (isLoading) {
@@ -57,10 +60,10 @@ const Index = () => {
               renderItem={({ item: org }) => (
                 <TouchableOpacity
                   onPress={() => {
-                    changeOrganizationId(org.id);
+                    changeOrganizationId(org.orgId);
                     router.replace("/(protected)/(routes)/catalogue");
                   }}
-                  key={org.id}
+                  key={org.orgId}
                 >
                   <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
                     <View>

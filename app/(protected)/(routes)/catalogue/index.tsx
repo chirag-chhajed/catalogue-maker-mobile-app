@@ -22,88 +22,33 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { hasPermission } from "~/lib/role";
 import {
-  useGetCataloguesQuery,
-  useSearchCataloguesQuery,
-} from "~/store/features/api/v2/catalogueApiV2";
+  useGetApiV1CatalogueInfiniteQuery,
+  useGetApiV1CatalogueSearchQuery,
+} from "~/store/features/api/newApis";
 import { useUserState } from "~/store/hooks";
-
-const PaginationButtons = ({
-  page,
-  hasMore,
-  onPrevPress,
-  onNextPress,
-  noResults,
-}: {
-  page: number;
-  hasMore: boolean;
-  onPrevPress: () => void;
-  onNextPress: () => void;
-  noResults?: boolean;
-}) => {
-  // Don't show buttons if it's first page and no more results
-  if (page === 1 && !hasMore) return null;
-
-  return (
-    <View className="px-4 py-2">
-      <View className="flex-row items-center justify-center gap-4">
-        <Button
-          variant="outline"
-          onPress={onPrevPress}
-          disabled={page === 1}
-          className="flex-1"
-        >
-          <Text className="text-center font-medium">Previous</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={onNextPress}
-          disabled={!hasMore}
-          className="flex-1"
-        >
-          <Text className="text-center font-medium">Next</Text>
-        </Button>
-      </View>
-      {!hasMore && page > 1 && (
-        <Text className="mt-4 text-center text-gray-600">
-          You have reached the end of the list.
-        </Text>
-      )}
-      {noResults && (
-        <Text className="mt-4 text-center text-gray-600">
-          No catalogues exist for this term.
-        </Text>
-      )}
-    </View>
-  );
-};
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState<"asc" | "desc">("desc");
-  const [page, setPage] = useState(1);
-  const [searchPage, setSearchPage] = useState(1);
 
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
   const {
     data: cataloguesData,
     isLoading: isCataloguesLoading,
     refetch: refetchCatalogues,
-  } = useGetCataloguesQuery({
-    limit: 10,
-    sortDir: sort,
-    page,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useGetApiV1CatalogueInfiniteQuery({
+    order: sort,
   });
-
   const {
     data: searchData,
     isLoading: isSearchLoading,
     refetch: refetchSearch,
-  } = useSearchCataloguesQuery(
+  } = useGetApiV1CatalogueSearchQuery(
     {
-      query: debouncedSearchTerm,
-      limit: 10,
-      sortDir: sort,
-      page: searchPage,
+      search: debouncedSearchTerm,
     },
     {
       skip: debouncedSearchTerm.length === 0,
@@ -119,23 +64,6 @@ const Index = () => {
     right: 12,
   };
 
-  // Remove handleEndReached as we're using buttons now
-  const handlePrevPage = () => {
-    if (searchQuery.length > 0) {
-      setSearchPage((prev) => Math.max(1, prev - 1));
-    } else {
-      setPage((prev) => Math.max(1, prev - 1));
-    }
-  };
-
-  const handleNextPage = () => {
-    if (searchQuery.length > 0 && searchData?.pagination.hasMore) {
-      setSearchPage((prev) => prev + 1);
-    } else if (cataloguesData?.pagination.hasMore) {
-      setPage((prev) => prev + 1);
-    }
-  };
-
   return (
     <View className="flex-1">
       {isCataloguesLoading ? (
@@ -146,7 +74,7 @@ const Index = () => {
             </View>
           ))}
         </View>
-      ) : !cataloguesData?.data?.length && !searchData?.data?.length ? (
+      ) : !cataloguesData?.pages?.length && !searchData?.data?.length ? (
         <View className="flex-1 items-center justify-center p-4">
           <Image source={img} style={{ width: 200, height: 200 }} />
           <Text className="mb-4 text-center text-gray-600">
@@ -194,7 +122,6 @@ const Index = () => {
                 <DropdownMenuContent insets={contentInsets} className="w-56">
                   <DropdownMenuItem
                     onPress={() => {
-                      setPage(1);
                       setSort("desc");
                     }}
                   >
@@ -205,7 +132,6 @@ const Index = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onPress={() => {
-                      setPage(1);
                       setSort("asc");
                     }}
                   >
@@ -223,7 +149,9 @@ const Index = () => {
           <View className="flex-1 px-4">
             <FlashList
               data={
-                searchQuery.length > 0 ? searchData?.data : cataloguesData?.data
+                searchQuery.length > 0
+                  ? searchData?.items
+                  : cataloguesData?.pages.flatMap((page) => page.items)
               }
               estimatedItemSize={300}
               ItemSeparatorComponent={() => <View className="h-2" />}
@@ -235,28 +163,23 @@ const Index = () => {
                 searchQuery.length > 0 ? isSearchLoading : isCataloguesLoading
               }
               renderItem={({ item }) => (
-                <CompactCard
-                  item={item}
-                  page={page}
-                  limit={10}
-                  sortDir={sort}
-                />
+                <CompactCard item={item} sortDir={sort} />
               )}
+              onEndReached={() => {
+                if (!searchQuery.length && hasNextPage && !isFetchingNextPage) {
+                  fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={() =>
+                isFetchingNextPage ? (
+                  <View className="py-4">
+                    <SkeletonCard />
+                  </View>
+                ) : null
+              }
             />
           </View>
-
-          {/* Pagination Buttons */}
-          <PaginationButtons
-            page={searchQuery.length > 0 ? searchPage : page}
-            hasMore={
-              searchQuery.length > 0
-                ? (searchData?.pagination.hasMore ?? false)
-                : (cataloguesData?.pagination.hasMore ?? false)
-            }
-            onPrevPress={handlePrevPage}
-            onNextPress={handleNextPage}
-            noResults={searchQuery.length > 0 && searchData?.data?.length === 0}
-          />
 
           {/* Floating Action Button */}
           {hasPermission(user?.role, "create:catalogue") ? (

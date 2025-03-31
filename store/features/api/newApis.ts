@@ -1,4 +1,6 @@
 import { api } from ".";
+import { changeState, clearState } from "../hello";
+import { clearOrganizationId } from "../organizationId";
 
 const newApis = api.injectEndpoints({
   endpoints: (build) => ({
@@ -11,6 +13,14 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(
+            changeState({ accessToken: data.accessToken, user: data.user }),
+          );
+        } catch (error) {}
+      },
     }),
     getApiV1AuthRefresh: build.query<
       GetApiV1AuthRefreshApiResponse,
@@ -22,12 +32,57 @@ const newApis = api.injectEndpoints({
           organizationId: queryArg.organizationId,
         },
       }),
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+
+          dispatch(
+            changeState({ accessToken: data.accessToken, user: data.user }),
+          );
+        } catch (error) {}
+      },
     }),
     postApiV1AuthLogout: build.mutation<
       PostApiV1AuthLogoutApiResponse,
       PostApiV1AuthLogoutApiArg
     >({
       query: () => ({ url: `/api/v1/auth/logout`, method: "POST" }),
+      async onQueryStarted(_args, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(clearState());
+          dispatch(clearOrganizationId());
+        } catch {
+          dispatch(clearState());
+          dispatch(clearOrganizationId());
+        }
+      },
+    }),
+    getApiV1Invitation: build.query<
+      GetApiV1InvitationApiResponse,
+      GetApiV1InvitationApiArg
+    >({
+      query: () => ({ url: `/api/v1/invitation` }),
+    }),
+    postApiV1InvitationAccept: build.mutation<
+      PostApiV1InvitationAcceptApiResponse,
+      PostApiV1InvitationAcceptApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/invitation/accept`,
+        method: "POST",
+        body: queryArg.body,
+      }),
+    }),
+    postApiV1Invitation: build.mutation<
+      PostApiV1InvitationApiResponse,
+      PostApiV1InvitationApiArg
+    >({
+      query: (queryArg) => ({
+        url: `/api/v1/invitation`,
+        method: "POST",
+        body: queryArg.body,
+      }),
     }),
     getApiV1Organisation: build.query<
       GetApiV1OrganisationApiResponse,
@@ -64,17 +119,25 @@ const newApis = api.injectEndpoints({
         body: queryArg.body,
       }),
     }),
-    getApiV1Catalogue: build.query<
+    getApiV1Catalogue: build.infiniteQuery<
       GetApiV1CatalogueApiResponse,
-      GetApiV1CatalogueApiArg
+      GetApiV1CatalogueApiArg,
+      { cursor?: string }
     >({
-      query: (queryArg) => ({
+      query: ({ queryArg, pageParam }) => ({
         url: `/api/v1/catalogue`,
         params: {
-          cursor: queryArg.cursor,
+          cursor: pageParam.cursor,
           order: queryArg.order,
         },
       }),
+      infiniteQueryOptions: {
+        initialPageParam: {},
+        getNextPageParam: (lastPage) => {
+          if (!lastPage.nextCursor) return undefined;
+          return { cursor: lastPage.nextCursor };
+        },
+      },
     }),
     postApiV1CatalogueByCatalogueId: build.mutation<
       PostApiV1CatalogueByCatalogueIdApiResponse,
@@ -90,6 +153,27 @@ const newApis = api.injectEndpoints({
           price: queryArg.price,
         },
       }),
+    }),
+    getApiV1CatalogueByCatalogueId: build.infiniteQuery<
+      GetApiV1CatalogueByCatalogueIdApiResponse,
+      Omit<GetApiV1CatalogueByCatalogueIdApiArg, "cursor">,
+      { cursor?: string }
+    >({
+      query: ({ queryArg, pageParam }) => ({
+        url: `/api/v1/catalogue/${queryArg.catalogueId}`,
+        params: {
+          cursor: pageParam.cursor,
+          order: queryArg.order,
+          priceSort: queryArg.priceSort,
+        },
+      }),
+      infiniteQueryOptions: {
+        initialPageParam: {},
+        getNextPageParam: (lastPage) => {
+          if (!lastPage.nextCursor) return undefined;
+          return { cursor: lastPage.nextCursor };
+        },
+      },
     }),
     putApiV1CatalogueByCatalogueId: build.mutation<
       PutApiV1CatalogueByCatalogueIdApiResponse,
@@ -111,17 +195,25 @@ const newApis = api.injectEndpoints({
         body: queryArg.body,
       }),
     }),
-    getApiV1CatalogueAll: build.query<
+    getApiV1CatalogueAll: build.infiniteQuery<
       GetApiV1CatalogueAllApiResponse,
-      GetApiV1CatalogueAllApiArg
+      Omit<GetApiV1CatalogueAllApiArg, "cursor">,
+      { cursor?: string }
     >({
-      query: (queryArg) => ({
+      query: ({ queryArg, pageParam }) => ({
         url: `/api/v1/catalogue/all`,
         params: {
-          cursor: queryArg.cursor,
+          cursor: pageParam.cursor,
           order: queryArg.order,
         },
       }),
+      infiniteQueryOptions: {
+        initialPageParam: {},
+        getNextPageParam: (lastPage) => {
+          if (!lastPage.nextCursor) return undefined;
+          return { cursor: lastPage.nextCursor };
+        },
+      },
     }),
     postApiV1CatalogueBulkUpdatePrices: build.mutation<
       PostApiV1CatalogueBulkUpdatePricesApiResponse,
@@ -323,6 +415,33 @@ export type PostApiV1CatalogueByCatalogueIdApiArg = {
   price: number;
   body: FormData;
 };
+export type GetApiV1CatalogueByCatalogueIdApiResponse =
+  /** status 200 Catalogue items retrieved successfully */ {
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: unknown | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+    nextCursor: string | null;
+  };
+export type GetApiV1CatalogueByCatalogueIdApiArg = {
+  catalogueId: string;
+  cursor?: string;
+  order?: "asc" | "desc";
+  priceSort?: "asc" | "desc";
+};
 export type PutApiV1CatalogueByCatalogueIdApiResponse =
   /** status 200 Catalogue updated successfully */ {
     message: string;
@@ -505,6 +624,34 @@ export type GetApiV1CatalogueSearchApiResponse =
 export type GetApiV1CatalogueSearchApiArg = {
   search: string;
 };
+export type PostApiV1InvitationApiResponse = /** status 201 Invitation code */ {
+  inviteCode: string;
+};
+export type PostApiV1InvitationApiArg = {
+  body: {
+    role: "admin" | "editor" | "viewer";
+  };
+};
+export type GetApiV1InvitationApiResponse =
+  /** status 200 Invitation details */ {
+    code: string;
+    role: string;
+    createdBy: string;
+    createdAt: number;
+    expiresAt: number;
+    usedBy?: string;
+    usedAt?: number;
+  }[];
+export type GetApiV1InvitationApiArg = void;
+export type PostApiV1InvitationAcceptApiResponse =
+  /** status 200 Invitation accepted */ {
+    message: string;
+  };
+export type PostApiV1InvitationAcceptApiArg = {
+  body: {
+    code: string;
+  };
+};
 export const {
   usePostApiV1AuthLoginMutation,
   useGetApiV1AuthRefreshQuery,
@@ -513,11 +660,12 @@ export const {
   usePostApiV1OrganisationMutation,
   useDeleteApiV1OrganisationRemoveUserByUserIdMutation,
   usePostApiV1CatalogueMutation,
-  useGetApiV1CatalogueQuery,
+  useGetApiV1CatalogueAllInfiniteQuery,
   usePostApiV1CatalogueByCatalogueIdMutation,
+  useGetApiV1CatalogueByCatalogueIdInfiniteQuery,
   usePutApiV1CatalogueByCatalogueIdMutation,
   useDeleteApiV1CatalogueByCatalogueIdMutation,
-  useGetApiV1CatalogueAllQuery,
+  useGetApiV1CatalogueInfiniteQuery,
   usePostApiV1CatalogueBulkUpdatePricesMutation,
   usePostApiV1CatalogueBulkTransferItemsMutation,
   useDeleteApiV1CatalogueBulkDeleteItemsMutation,
@@ -526,4 +674,7 @@ export const {
   useGetApiV1CatalogueSearchItemsByCatalogueIdQuery,
   useGetApiV1CatalogueSearchItemsQuery,
   useGetApiV1CatalogueSearchQuery,
-} = injectedRtkApi;
+  usePostApiV1InvitationMutation,
+  useGetApiV1InvitationQuery,
+  usePostApiV1InvitationAcceptMutation,
+} = newApis;

@@ -8,7 +8,7 @@ import { toast } from "sonner-native";
 import * as z from "zod";
 
 import { Button } from "~/components/ui/button";
-import { useCreateOrgMutation } from "~/store/features/api/organizationApi";
+import { usePostApiV1OrganisationMutation } from "~/store/features/api/newApis";
 
 export default function CreateForm() {
   const schema = z.object({
@@ -23,7 +23,7 @@ export default function CreateForm() {
       .max(500, "Description must be maximum of 500 characters")
       .optional(),
   });
-  const [create, { isLoading }] = useCreateOrgMutation();
+  const [create, { isLoading }] = usePostApiV1OrganisationMutation();
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -35,15 +35,20 @@ export default function CreateForm() {
   });
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    toast.promise(create(data).unwrap(), {
-      loading: "Creating organization...",
-      success: () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.back();
-        return "Organization created successfully";
+    toast.promise(
+      create({
+        body: data,
+      }).unwrap(),
+      {
+        loading: "Creating organization...",
+        success: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.back();
+          return "Organization created successfully";
+        },
+        error: "Failed to create organization",
       },
-      error: "Failed to create organization",
-    });
+    );
   };
 
   return (
