@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, useRouter } from "expo-router";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AntDesign } from "@expo/vector-icons";
 
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
@@ -51,8 +52,11 @@ export default function App() {
 
   return (
     <SafeAreaView className="flex-1">
-      <LinearGradient colors={["#d3e3eb", "#eadad2"]} style={{ flex: 1 }}>
-        <View className=" flex-1 items-center justify-center">
+      <LinearGradient
+        colors={["hsl(33, 25%, 92%)", "hsl(33, 31%, 72%)"]}
+        style={{ flex: 1 }}
+      >
+        <View className="flex-1 items-center justify-center p-8">
           <Button
             disabled={isLoading}
             onPress={async () => {
@@ -75,9 +79,13 @@ export default function App() {
                 await GoogleSignin.signOut();
               }
             }}
-            size="lg"
+            size={"lg"}
+            className="flex-row items-center justify-center gap-3 rounded-xl "
           >
-            <Text>Sign in With Google</Text>
+            <AntDesign name="google" size={24} color="white" />
+            <Text className="text-lg font-semibold text-white">
+              Sign in with Google
+            </Text>
           </Button>
         </View>
       </LinearGradient>

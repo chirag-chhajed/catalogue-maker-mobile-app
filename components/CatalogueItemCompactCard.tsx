@@ -36,12 +36,20 @@ import { addImages, removeImages } from "~/store/features/sharableImageSlice";
 import { useAppDispatch, useUserState } from "~/store/hooks";
 
 type CardItem = {
-  id: string;
+  itemId: string;
+  catalogueId: string;
+  orgId: string;
   name: string;
-  description: string | null;
-  price: string | null;
-  images: ImageType[];
-  createdAt: Date;
+  description?: string;
+  price: number;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt?: number;
+  image: {
+    imageUrl: string;
+    blurhash?: string;
+    uploadedAt?: number;
+  };
 };
 
 const schema = z.object({
@@ -66,8 +74,6 @@ export const CompactCard = ({
   item,
   id,
   select,
-  page,
-  searchPage,
   sortDir,
   priceSort,
 }: {
@@ -98,23 +104,25 @@ export const CompactCard = ({
       dispatch(
         addImages({
           id,
-          itemId: item.id,
-          images: item.images.map((img) => ({
-            id: img.id,
-            imageUrl: img.imageUrl,
-            blurhash: img.blurhash,
-            checked: true,
-            name: item.name,
-            description: item.description ?? "",
-            price: item.price,
-          })),
+          itemId: item.itemId,
+          images: [
+            {
+              id: item.id,
+              blurhash: item.image.blurhash,
+              imageUrl: item.image.imageUrl,
+              checked: true,
+              name: item.name,
+              description: item.description ?? "",
+              price: item.price,
+            },
+          ],
         }),
       );
     } else {
       dispatch(
         removeImages({
           id,
-          itemId: item.id,
+          itemId: item.itemId,
         }),
       );
     }
@@ -150,30 +158,10 @@ export const CompactCard = ({
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            toast.promise(deleteItem({ id: item.id }).unwrap(), {
+            toast.promise(deleteItem({ id: item.itemId }).unwrap(), {
               loading: "Deleting...",
               success: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                dispatch(
-                  catalogueApiV2.util.updateQueryData(
-                    "getCatalogItems",
-                    {
-                      id,
-                      limit: 10,
-                      page,
-                      priceSort,
-                      sortDir,
-                    },
-                    (draft) => {
-                      const index = draft.items.findIndex(
-                        (cat) => cat.id === item.id,
-                      );
-                      if (index !== -1) {
-                        draft.items.splice(index, 1);
-                      }
-                    },
-                  ),
-                );
                 return "Item deleted successfully";
               },
               error: "Failed to delete Item",
@@ -187,36 +175,11 @@ export const CompactCard = ({
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
     toast.promise(
-      updateItem({ id: item.id, catalogueId: id, ...data }).unwrap(),
+      updateItem({ id: item.itemId, catalogueId: id, ...data }).unwrap(),
       {
         success: () => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           setOpen(false);
-          dispatch(
-            catalogueApiV2.util.updateQueryData(
-              "getCatalogItems",
-              {
-                id,
-                limit: 10,
-                page,
-                priceSort,
-                sortDir,
-              },
-              (draft) => {
-                const index = draft.items.findIndex(
-                  (cat) => cat.id === item.id,
-                );
-                if (index !== -1) {
-                  draft.items[index] = {
-                    ...draft.items[index],
-                    name: data.name,
-                    description: data.description || "",
-                    price: String(data.price),
-                  };
-                }
-              },
-            ),
-          );
           return "Item updated successfully";
         },
         error: "Failed to update Item",
@@ -229,10 +192,10 @@ export const CompactCard = ({
     <Card className="flex-row overflow-hidden rounded-lg bg-white shadow-sm">
       <Image
         style={{ width: 120, height: 120 }}
-        source={item.images[0].imageUrl}
+        source={item.image.imageUrl}
         contentFit="cover"
         className="rounded-l-lg"
-        placeholder={item.images[0].blurhash}
+        placeholder={item.image.blurhash}
       />
 
       <View className="flex-1 p-3">
@@ -242,9 +205,7 @@ export const CompactCard = ({
             params: {
               id,
               title: item.name,
-              catalogueId: item.id,
-              page,
-              searchPage,
+              catalogueId: item.catalogueId,
               sortDir,
               priceSort,
             },
@@ -311,9 +272,9 @@ export const CompactCard = ({
             <DropdownMenuItem
               onPress={async () => {
                 try {
-                  const images = await downloadImagesToCache(
-                    item.images.map((img) => img.imageUrl),
-                  );
+                  const images = await downloadImagesToCache([
+                    item.image.imageUrl,
+                  ]);
 
                   Share.open({
                     title: item.name,
@@ -332,9 +293,9 @@ export const CompactCard = ({
             <DropdownMenuItem
               onPress={async () => {
                 try {
-                  const images = await downloadImagesToCache(
-                    item.images.map((img) => img.imageUrl),
-                  );
+                  const images = await downloadImagesToCache([
+                    item.image.imageUrl,
+                  ]);
                   await Share.shareSingle({
                     urls: images,
                     social: Share.Social.WHATSAPP,

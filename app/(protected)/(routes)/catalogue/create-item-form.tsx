@@ -3,13 +3,14 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Text, View, TextInput, ScrollView } from "react-native";
+import { Text, View, TextInput } from "react-native";
 import ImageModal from "react-native-image-modal";
 import { toast } from "sonner-native";
 import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
-import { useCreateCatalogItemMutation } from "~/store/features/api/catalogueApi";
+import { THEME_COLORS } from "~/lib/constants";
+import { usePostApiV1CatalogueByCatalogueIdMutation } from "~/store/features/api/newApis";
 import { useGetImages } from "~/store/hooks";
 
 export default function CreateItemForm() {
@@ -41,165 +42,170 @@ export default function CreateItemForm() {
   });
 
   const { id } = useLocalSearchParams();
-
-  const [create, { isLoading }] = useCreateCatalogItemMutation();
+  console.log(id);
+  const [create, { isLoading }] = usePostApiV1CatalogueByCatalogueIdMutation();
   const images = useGetImages();
-
   const handleSubmit = async (data: z.infer<typeof schema>) => {
     const formData = new FormData();
-    for (const image of images) {
-      formData.append("images", image);
+    if (images[0]) {
+      formData.append("file", {
+        uri: images[0].uri,
+        type: images[0].type,
+        name: images[0].name,
+      });
     }
-    formData.append("name", data.name);
-    formData.append("description", data.description || "");
-    formData.append("price", data.price);
 
-    toast.promise(create({ id, formData }), {
-      success: () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.back();
-        return "Item created successfully";
+    toast.promise(
+      create({
+        body: formData,
+        catalogueId: id,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+      }).unwrap(),
+      {
+        success: () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.back();
+          return "Item created successfully";
+        },
+        loading: "Creating Item...",
+        error: "Failed to create Item",
       },
-      loading: "Creating Item...",
-      error: "Failed to create Item",
-    });
+    );
   };
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ flexGrow: 1 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="flex-1 items-center justify-center p-6">
-        {/* Photo Grid */}
-        <View className="mb-8 w-full flex-row flex-wrap justify-center gap-2">
-          {images.map((url, index) => (
-            <ImageModal
-              key={url.uri}
-              resizeMode="cover"
-              source={{ uri: url.uri }}
-              style={{ height: 125, width: 125 }}
-              renderImageComponent={({ source, resizeMode, style }) => (
-                <Image
-                  source={source}
-                  style={style}
-                  className="rounded-lg"
-                  contentFit={resizeMode}
-                />
-              )}
-              renderHeader={(close) => (
-                <Text className="text-white">Image {index + 1}</Text>
+    <View className="flex-1 items-center justify-center p-6">
+      <View className="mb-8 items-center">
+        <ImageModal
+          key={images[0]?.uri}
+          resizeMode="cover"
+          source={{ uri: images[0]?.uri }}
+          style={{ height: 150, width: 150 }}
+          renderImageComponent={({ source, resizeMode, style }) => (
+            <Image
+              source={source}
+              style={style}
+              className="rounded-lg"
+              contentFit={resizeMode}
+            />
+          )}
+        />
+      </View>
+
+      <FormProvider {...form}>
+        <View className="w-full max-w-md rounded-lg bg-card p-6 shadow-sm">
+          <Text className="text-2xl font-bold text-foreground">
+            Create New Item
+          </Text>
+          <Text className="mb-6 mt-2 text-sm text-muted-foreground">
+            Enter details for your new item
+          </Text>
+
+          <View>
+            {/* Name Input */}
+            <Controller
+              control={form.control}
+              name="name"
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <View className="mb-4">
+                  <Text className="mb-1 text-sm font-medium text-foreground">
+                    Name
+                  </Text>
+                  <TextInput
+                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    placeholder="Enter item name"
+                    placeholderTextColor={THEME_COLORS.mutedForeground}
+                  />
+                  <Text className="mb-1 text-sm text-destructive">
+                    {error?.message}
+                  </Text>
+                </View>
               )}
             />
-          ))}
-        </View>
 
-        <FormProvider {...form}>
-          <View className="w-full max-w-md rounded-lg bg-white p-6 shadow-sm">
-            <Text className="text-2xl font-bold text-gray-800">
-              Create New Item
-            </Text>
-            <Text className="mb-6 mt-2 text-sm text-gray-600">
-              Enter details for your new item
-            </Text>
+            {/* Description Input */}
+            <Controller
+              control={form.control}
+              name="description"
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <View className="mb-4">
+                  <Text className="mb-1 text-sm font-medium text-foreground">
+                    Description
+                  </Text>
+                  <TextInput
+                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    placeholder="Enter item description"
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                    placeholderTextColor={THEME_COLORS.mutedForeground}
+                  />
+                  <Text className="mb-1 text-sm text-destructive">
+                    {error?.message}
+                  </Text>
+                </View>
+              )}
+            />
 
-            <View>
-              <Controller
-                control={form.control}
-                name="name"
-                render={({
-                  field: { onChange, onBlur, value, disabled },
-                  fieldState: { error },
-                }) => (
-                  <View className="mb-4">
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Name
+            {/* Price Input */}
+            <Controller
+              control={form.control}
+              name="price"
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <View className="mb-4">
+                  <Text className="mb-1 text-sm font-medium text-foreground">
+                    Price
+                  </Text>
+                  <View className="relative">
+                    <Text className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground">
+                      $
                     </Text>
                     <TextInput
-                      className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
+                      className="w-full rounded-md border border-input bg-background py-2 pl-7 pr-4 text-foreground focus:border-ring"
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
-                      placeholder="Enter item name"
-                      editable={disabled}
-                    />
-                    <Text className="mb-1 text-sm text-red-500">
-                      {error?.message}
-                    </Text>
-                  </View>
-                )}
-              />
-
-              <Controller
-                control={form.control}
-                name="description"
-                render={({
-                  field: { onChange, onBlur, value, disabled },
-                  fieldState: { error },
-                }) => (
-                  <View className="mb-2">
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Description
-                    </Text>
-                    <TextInput
-                      className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder="Enter item description"
-                      multiline
-                      numberOfLines={3}
-                      textAlignVertical="top"
-                      editable={disabled}
-                    />
-                    <Text className="mb-1 text-sm text-red-500">
-                      {error?.message}
-                    </Text>
-                  </View>
-                )}
-              />
-
-              <Controller
-                control={form.control}
-                name="price"
-                render={({
-                  field: { onChange, onBlur, value, disabled },
-                  fieldState: { error },
-                }) => (
-                  <View className="mb-2">
-                    <Text className="mb-1 text-sm font-medium text-gray-700">
-                      Price
-                    </Text>
-                    <TextInput
-                      className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder="Enter price"
+                      placeholder="0.00"
                       keyboardType="numeric"
-                      editable={disabled}
+                      placeholderTextColor={THEME_COLORS.mutedForeground}
                     />
-                    <Text className="mb-1 text-sm text-red-500">
-                      {error?.message}
-                    </Text>
                   </View>
-                )}
-              />
+                  <Text className="mb-1 text-sm text-destructive">
+                    {error?.message}
+                  </Text>
+                </View>
+              )}
+            />
 
-              <Button
-                onPress={form.handleSubmit(handleSubmit)}
-                disabled={isLoading || form.formState.isSubmitting}
-                className="di mt-4 w-full rounded-md bg-blue-600 py-3 disabled:bg-gray-400"
-              >
-                <Text className="text-center font-semibold text-white">
-                  Create Item
-                </Text>
-              </Button>
-            </View>
+            <Button
+              onPress={form.handleSubmit(handleSubmit)}
+              disabled={isLoading || form.formState.isSubmitting}
+              className="mt-4 w-full rounded-md bg-primary py-3"
+            >
+              <Text className="text-center font-semibold text-primary-foreground">
+                Create Item
+              </Text>
+            </Button>
           </View>
-        </FormProvider>
-      </View>
-    </ScrollView>
+        </View>
+      </FormProvider>
+    </View>
   );
 }

@@ -1,31 +1,44 @@
 import { AntDesign } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { View, Pressable } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import img from "~/assets/266.png";
 import { CompactCard } from "~/components/CataloguePageCompactCard";
-import { Button } from "~/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 import { hasPermission } from "~/lib/role";
 import {
   useGetApiV1CatalogueInfiniteQuery,
   useGetApiV1CatalogueSearchQuery,
 } from "~/store/features/api/newApis";
 import { useUserState } from "~/store/hooks";
+
+const FilterChip = ({
+  active,
+  onPress,
+  children,
+}: {
+  active: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+}) => (
+  <Pressable
+    onPress={onPress}
+    className={`flex-row items-center rounded-full px-4 py-2 ${
+      active ? "bg-primary" : "bg-secondary/50"
+    }`}
+  >
+    <Text
+      className={active ? "text-primary-foreground" : "text-muted-foreground"}
+    >
+      {children}
+    </Text>
+  </Pressable>
+);
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -55,14 +68,7 @@ const Index = () => {
     },
   );
 
-  const insets = useSafeAreaInsets();
   const user = useUserState();
-  const contentInsets = {
-    top: insets.top,
-    bottom: insets.bottom,
-    left: 12,
-    right: 12,
-  };
 
   return (
     <View className="flex-1">
@@ -74,74 +80,65 @@ const Index = () => {
             </View>
           ))}
         </View>
-      ) : !cataloguesData?.pages?.length && !searchData?.data?.length ? (
-        <View className="flex-1 items-center justify-center p-4">
-          <Image source={img} style={{ width: 200, height: 200 }} />
-          <Text className="mb-4 text-center text-gray-600">
+      ) : !cataloguesData?.pages?.length && !searchData?.items?.length ? (
+        <View className="flex-1 items-center justify-center space-y-4 p-4">
+          <View className="h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+            <AntDesign
+              name="appstore1"
+              size={40}
+              color={THEME_COLORS.primary}
+            />
+          </View>
+          <Text className="text-center text-muted-foreground">
             No catalogs yet
           </Text>
-          <Pressable className="rounded-md bg-blue-600 px-6 py-3">
-            <Link
-              href="/(protected)/(routes)/catalogue/create-catalog"
-              className="text-center font-semibold text-white"
-            >
-              Create Your First catalogue
-            </Link>
-          </Pressable>
+          <Link href="/(protected)/(routes)/catalogue/create-catalog" asChild>
+            <Pressable className="rounded-md bg-primary px-6 py-3">
+              <Text className="font-semibold text-primary-foreground">
+                Create Your First catalogue
+              </Text>
+            </Pressable>
+          </Link>
         </View>
       ) : (
         <View className="flex-1">
-          {/* Search and Filter Section */}
-          <View className="flex-row items-center justify-between p-4">
-            <View className="relative mr-2 flex-1 flex-row items-center">
+          {/* Search Section */}
+          <View className="p-4">
+            <View className="relative">
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search catalogues..."
-                style={{ flex: 1 }}
-                className="px-4 py-2 focus:border-blue-500"
+                className="border-input bg-background pr-10 text-foreground"
               />
               {searchQuery.length > 0 && (
                 <Pressable
-                  onPress={() => {
-                    setSearchQuery("");
-                  }}
-                  className="absolute right-2 ml-2"
+                  onPress={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  <AntDesign name="closecircle" size={24} color="#666" />
+                  <AntDesign
+                    name="closecircle"
+                    size={20}
+                    color={THEME_COLORS.mutedForeground}
+                  />
                 </Pressable>
               )}
             </View>
-            <View className="flex-row gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Pressable className="rounded-md bg-gray-200 p-2">
-                    <AntDesign name="filter" size={24} color="#666" />
-                  </Pressable>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent insets={contentInsets} className="w-56">
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setSort("desc");
-                    }}
-                  >
-                    <Text className="font-medium">Date: New to Old</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="calendar" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setSort("asc");
-                    }}
-                  >
-                    <Text className="font-medium">Date: Old to New</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="calendar" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+
+            {/* Filter Chips */}
+            <View className="mt-3 flex-row space-x-2">
+              <FilterChip
+                active={sort === "desc"}
+                onPress={() => setSort("desc")}
+              >
+                Newest First
+              </FilterChip>
+              <FilterChip
+                active={sort === "asc"}
+                onPress={() => setSort("asc")}
+              >
+                Oldest First
+              </FilterChip>
             </View>
           </View>
 
@@ -181,14 +178,14 @@ const Index = () => {
             />
           </View>
 
-          {/* Floating Action Button */}
-          {hasPermission(user?.role, "create:catalogue") ? (
+          {/* FAB */}
+          {hasPermission(user?.role, "create:catalogue") && (
             <Link href="/(protected)/(routes)/catalogue/create-catalog" asChild>
-              <Pressable className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-blue-600 shadow-lg">
+              <Pressable className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg">
                 <AntDesign name="plus" size={24} color="white" />
               </Pressable>
             </Link>
-          ) : null}
+          )}
         </View>
       )}
     </View>

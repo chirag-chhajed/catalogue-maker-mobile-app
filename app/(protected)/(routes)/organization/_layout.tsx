@@ -3,6 +3,7 @@ import { Link, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 
 export default function OrganizationLayout() {
   return (
@@ -11,12 +12,13 @@ export default function OrganizationLayout() {
         name="index"
         options={{
           headerLeft: () => (
-            <Text className="text-3xl font-bold ">Organizations</Text>
+            <Text className="text-3xl font-bold text-foreground">
+              Organizations
+            </Text>
           ),
-
           headerRight: () => (
-            <Pressable className="rounded-full bg-blue-600 p-3 ">
-              <Link href="/(protected)/organization/create-form">
+            <Pressable className="rounded-full bg-primary p-3">
+              <Link href="/(protected)/(routes)/organization/create-form">
                 <AntDesign name="plus" size={20} color="white" />
               </Link>
             </Pressable>
@@ -30,6 +32,10 @@ export default function OrganizationLayout() {
         options={{
           presentation: "modal",
           headerTitle: "Create Organization",
+          headerTintColor: THEME_COLORS.foreground,
+          headerTitleStyle: {
+            color: THEME_COLORS.foreground,
+          },
         }}
       />
       <Stack.Screen
@@ -37,6 +43,10 @@ export default function OrganizationLayout() {
         options={{
           presentation: "modal",
           headerTitle: "Join Organization",
+          headerTintColor: THEME_COLORS.foreground,
+          headerTitleStyle: {
+            color: THEME_COLORS.foreground,
+          },
         }}
       />
     </Stack>

@@ -21,19 +21,24 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 import { hasPermission } from "~/lib/role";
 import {
-  type ImageType,
   useDeleteCatalogMutation,
   useUpdateCatalogMutation,
 } from "~/store/features/api/catalogueApi";
-import { catalogueApiV2 } from "~/store/features/api/v2/catalogueApiV2";
-import { useAppDispatch, useUserState } from "~/store/hooks";
+import { useUserState } from "~/store/hooks";
 
-const pastelColors = ["#b2e0f8", "#ffd6d6", "#d6ffd6", "#fff4d6"];
+type ImageType = {
+  imageUrl: string;
+  blurhash?: string;
+  imageId: string;
+  catalogueId: string;
+  itemId: string;
+};
 
 type CardItem = {
-  id: string;
+  catalogueId: string;
   name: string;
   description: string;
   createdAt: Date;
@@ -56,34 +61,31 @@ const schema = z.object({
 const CardImage = ({ images }: { images: ImageType[] }) => {
   if (images.length === 0) {
     return (
-      <View
-        style={{
-          width: 120,
-          height: 120,
-          backgroundColor:
-            pastelColors[Math.floor(Math.random() * pastelColors.length)],
-        }}
-      />
+      <View className="h-[120px] w-[120px] items-center justify-center bg-secondary/50">
+        <AntDesign
+          name="picture"
+          size={30}
+          color={THEME_COLORS.mutedForeground}
+        />
+      </View>
     );
   }
 
   return (
-    <View
-      style={{ width: 120, height: 120 }}
-      className="flex-row flex-wrap overflow-hidden"
-    >
-      {images.slice(0, 4).map((image) => (
-        <Image
-          key={image.id}
-          source={{ uri: image.imageUrl }}
-          placeholder={image.blurhash}
-          contentFit="cover"
-          style={{
-            width: images.length === 1 ? 120 : 60,
-            height: images.length <= 2 ? 120 : 60,
-          }}
-        />
-      ))}
+    <View className="h-[120px] w-[120px] overflow-hidden">
+      <View className="flex-row flex-wrap">
+        {images.slice(0, 4).map((image, index) => (
+          <Image
+            key={image.imageId}
+            source={{ uri: image.imageUrl }}
+            placeholder={image.blurhash}
+            style={{
+              height: images.length === 1 ? 120 : images.length <= 2 ? 120 : 60,
+              width: images.length === 1 ? 120 : images.length <= 2 ? 60 : 60,
+            }}
+          />
+        ))}
+      </View>
     </View>
   );
 };
@@ -175,24 +177,12 @@ const UpdateCatalogueForm = ({
   );
 };
 
-export const CompactCard = ({
-  item,
-  page,
-  limit,
-  sortDir,
-}: {
-  item: CardItem;
-  page: number;
-  limit: number;
-  sortDir: "asc" | "desc";
-}) => {
+export const CompactCard = ({ item }: { item: CardItem }) => {
   const insets = useSafeAreaInsets();
   const [deleteCatalog] = useDeleteCatalogMutation();
   const [open, setOpen] = useState(false);
   const [updateCatalog, { isLoading }] = useUpdateCatalogMutation();
   const { role } = useUserState();
-  const dispatch = useAppDispatch();
-
   const contentInsets = {
     top: insets.top,
     bottom: insets.bottom,
@@ -218,29 +208,11 @@ export const CompactCard = ({
         {
           text: "Delete",
           onPress: () => {
-            toast.promise(deleteCatalog({ id: item.id }).unwrap(), {
+            toast.promise(deleteCatalog({ id: item.catalogueId }).unwrap(), {
               loading: "Deleting...",
               success: () => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                dispatch(
-                  catalogueApiV2.util.updateQueryData(
-                    "getCatalogues",
-                    {
-                      page,
-                      limit,
-                      sortDir,
-                    },
-                    (draft) => {
-                      const index = draft.data.findIndex(
-                        (cat) => cat.id === item.id,
-                      );
-                      if (index !== -1) {
-                        // Remove the item at the found index
-                        draft.data.splice(index, 1);
-                      }
-                    },
-                  ),
-                );
+
                 return "Catalogue deleted successfully";
               },
               error: "Failed to delete catalogue",
@@ -255,103 +227,108 @@ export const CompactCard = ({
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
     // const hello = await updateCatalog({ ...data, id: item.id }).unwrap();
-    toast.promise(updateCatalog({ ...data, id: item.id }).unwrap(), {
+    toast.promise(updateCatalog({ ...data, id: item.catalogueId }).unwrap(), {
       success: (hello) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setOpen(false);
-        dispatch(
-          catalogueApiV2.util.updateQueryData(
-            "getCatalogues",
-            { page, limit, sortDir },
-            (draft) => {
-              const index = draft.data.findIndex((cat) => cat.id === item.id);
-              if (index !== -1) {
-                draft.data[index] = {
-                  ...draft.data[index],
-                  name: data.name,
-                  description: data.description || "",
-                };
-              }
-            },
-          ),
-        );
+
         return "Catalogue updated successfully";
       },
-      error: "Failed to update Catalogue",
+      error: "Faisled to update Catalogue",
       loading: "Updating Catalogue...",
     });
   };
 
   return (
-    <Card className="relative flex-row overflow-hidden rounded-lg bg-white shadow-sm">
-      <CardImage images={item.images} />
+    <Card className="overflow-hidden border-none bg-card/50 backdrop-blur-sm">
+      <View className="flex-row">
+        <CardImage images={item.images} />
 
-      <Link
-        href={{
-          pathname: "/catalogue/[id]",
-          params: { id: item.id, title: item.name },
-        }}
-        className="w-full flex-1"
-      >
-        <View className="w-full p-3">
-          <CardTitle className="text-base font-bold text-gray-900">
-            {item.name}
-          </CardTitle>
-          <Text className="text-sm text-gray-600" numberOfLines={2}>
-            {item.description}
-          </Text>
-          <View className="mt-2 flex-row items-center">
-            <AntDesign name="calendar" size={12} color="#6B7280" />
-            <Text className="ml-1 text-xs text-gray-500">
-              {format(new Date(item.createdAt), "dd/MM/yyyy")}
+        <Link
+          href={{
+            pathname: "/catalogue/[id]",
+            params: { id: item.catalogueId, title: item.name },
+          }}
+          className="flex-1"
+        >
+          <View className="flex-1 p-3">
+            <CardTitle className="text-base font-bold text-foreground">
+              {item.name}
+            </CardTitle>
+            <Text
+              className="mt-1 text-sm text-muted-foreground"
+              numberOfLines={2}
+            >
+              {item.description}
             </Text>
+            <View className="mt-2 flex-row items-center">
+              <AntDesign
+                name="calendar"
+                size={12}
+                color={THEME_COLORS.mutedForeground}
+              />
+              <Text className="ml-1 text-xs text-muted-foreground">
+                {format(new Date(item.createdAt), "dd/MM/yyyy")}
+              </Text>
+            </View>
           </View>
-        </View>
-      </Link>
+        </Link>
 
-      {hasPermission(role, "create:catalogue") ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="absolute right-2 top-2 p-1"
-              size="icon"
-            >
-              <Entypo name="dots-three-vertical" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent insets={contentInsets} className="w-56">
-            <DropdownMenuItem
-              onPress={() => setOpen(true)}
-              className="flex flex-row justify-between"
-            >
-              <Text className="font-medium">Edit</Text>
-              <AntDesign name="edit" size={24} />
-            </DropdownMenuItem>
-
-            {hasPermission(role, "delete:catalogue") && (
-              <DropdownMenuItem
-                onPress={handleDelete}
-                className="flex flex-row justify-between"
+        {hasPermission(role, "create:catalogue") && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="absolute right-2 top-2 h-8 w-8 rounded-full p-0"
+                size="icon"
               >
-                <Text className="font-medium">Delete</Text>
-                <AntDesign name="delete" size={24} />
+                <Entypo
+                  name="dots-three-vertical"
+                  color={THEME_COLORS.mutedForeground}
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent insets={contentInsets} className="w-56">
+              <DropdownMenuItem
+                onPress={() => setOpen(true)}
+                className="flex-row items-center justify-between py-2"
+              >
+                <Text className="text-foreground">Edit</Text>
+                <AntDesign
+                  name="edit"
+                  size={18}
+                  color={THEME_COLORS.mutedForeground}
+                />
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : null}
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-96">
-          <UpdateCatalogueForm
-            item={item}
-            isLoading={isLoading}
-            onSubmit={handleSubmit}
-            form={form}
-          />
-        </DialogContent>
-      </Dialog>
+              {hasPermission(role, "delete:catalogue") && (
+                <DropdownMenuItem
+                  onPress={handleDelete}
+                  className="flex-row items-center justify-between py-2"
+                >
+                  <Text className="text-destructive">Delete</Text>
+                  <AntDesign
+                    name="delete"
+                    size={18}
+                    color={THEME_COLORS.destructive}
+                  />
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="bg-background p-0">
+            <UpdateCatalogueForm
+              item={item}
+              isLoading={isLoading}
+              onSubmit={handleSubmit}
+              form={form}
+            />
+          </DialogContent>
+        </Dialog>
+      </View>
     </Card>
   );
 };

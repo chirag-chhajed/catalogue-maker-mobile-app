@@ -3,26 +3,36 @@ import { Link, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 
 const CatalogueLayout = () => {
   return (
     <Stack
       screenOptions={{
         headerShadowVisible: false,
+        headerTintColor: THEME_COLORS.foreground,
+        headerTitleStyle: {
+          color: THEME_COLORS.foreground,
+        },
       }}
     >
       <Stack.Screen
         name="index"
         options={{
           headerLeft: () => (
-            <Text className="text-3xl font-bold ">Catalogues</Text>
+            <Text className="text-3xl font-bold text-foreground">
+              Catalogues
+            </Text>
           ),
           headerTitle: "",
-          headerShadowVisible: false,
           headerRight: () => (
-            <Pressable className=" p-3 ">
+            <Pressable className="rounded-full p-3">
               <Link href="/(protected)/(routes)/settings/profile">
-                <Feather name="settings" size={24} />
+                <Feather
+                  name="settings"
+                  size={24}
+                  color={THEME_COLORS.foreground}
+                />
               </Link>
             </Pressable>
           ),
@@ -39,7 +49,6 @@ const CatalogueLayout = () => {
         options={{
           presentation: "modal",
           headerTitle: "Create Catalogue",
-          headerShadowVisible: false,
         }}
       />
       <Stack.Screen
@@ -47,7 +56,6 @@ const CatalogueLayout = () => {
         options={{
           presentation: "modal",
           headerTitle: "Create Item",
-          headerShadowVisible: false,
         }}
       />
     </Stack>

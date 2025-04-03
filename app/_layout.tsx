@@ -35,7 +35,7 @@ export default function Layout() {
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 5000);
   }, []);
 
   if (loading) {

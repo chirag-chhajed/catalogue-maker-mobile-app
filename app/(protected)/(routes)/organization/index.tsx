@@ -2,6 +2,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { Link, router } from "expo-router";
 import { View, ScrollView, Pressable, TouchableOpacity } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
 
 import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
@@ -17,7 +18,6 @@ import { useGetApiV1OrganisationQuery } from "~/store/features/api/newApis";
 import { useOrganitionIdDispatch } from "~/store/hooks";
 
 const Index = () => {
-  // const [organizationsExist, setOrganizationsExist] = useState(true);
   const {
     data: organizations,
     isLoading,
@@ -65,22 +65,42 @@ const Index = () => {
                   }}
                   key={org.orgId}
                 >
-                  <Card className="mb-4 flex w-full flex-row items-end justify-between py-3">
-                    <View>
-                      <CardHeader>
-                        <CardTitle>{org.name}</CardTitle>
-                        <CardDescription>{org.description}</CardDescription>
-                      </CardHeader>
+                  <Card className="mb-4 overflow-hidden border-none bg-card/50 backdrop-blur-sm">
+                    <View className="flex-row items-center justify-between p-4">
+                      <View className="flex-1">
+                        <CardHeader className="p-0">
+                          <CardTitle className="text-xl text-foreground">
+                            {org.name}
+                          </CardTitle>
+                          {org.description ? (
+                            <CardDescription className="mt-1 text-muted-foreground">
+                              {org.description}
+                            </CardDescription>
+                          ) : null}
+                        </CardHeader>
 
-                      <CardFooter>
-                        <Badge
-                          variant={
-                            org.role === "admin" ? "default" : "secondary"
-                          }
-                        >
-                          <Text className="capitalize">{org.role}</Text>
-                        </Badge>
-                      </CardFooter>
+                        <CardFooter className="mt-4 p-0">
+                          <Badge
+                            variant={
+                              org.role === "admin" ? "default" : "secondary"
+                            }
+                            className={
+                              org.role === "admin"
+                                ? "bg-primary"
+                                : "bg-secondary"
+                            }
+                          >
+                            <Text className="capitalize text-white">
+                              {org.role}
+                            </Text>
+                          </Badge>
+                        </CardFooter>
+                      </View>
+                      <AntDesign
+                        name="right"
+                        size={20}
+                        className="text-muted-foreground"
+                      />
                     </View>
                   </Card>
                 </TouchableOpacity>
@@ -90,9 +110,9 @@ const Index = () => {
         </ScrollView>
       )}
 
-      <View className="self-center border-t border-gray-200 py-4">
+      <View className="self-center border-t border-border py-4">
         <Link href="/(protected)/(routes)/organization/join-form">
-          <Text className="text-center text-blue-600 underline underline-offset-2">
+          <Text className="text-center text-primary underline underline-offset-2">
             Have an invite code to join an organization?
           </Text>
         </Link>

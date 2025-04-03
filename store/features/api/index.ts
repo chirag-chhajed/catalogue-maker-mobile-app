@@ -33,6 +33,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
   // If the request failed due to an expired token,
   // refresh the token and retry the request.
+  console.log(result.error);
   const organizationId = (api.getState() as RootState).orgId.organizationId;
   if (result.error?.status === 403) {
     const refreshResult = (await baseQuery(

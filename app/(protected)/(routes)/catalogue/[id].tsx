@@ -36,9 +36,9 @@ import {
 } from "~/lib/downloadImagesToCache";
 import { PolaroidImageCapture } from "~/lib/processImages";
 import {
-  useGetCatalogItemsQuery,
-  useSearchCatalogItemsQuery,
-} from "~/store/features/api/v2/catalogueApiV2";
+  useGetApiV1CatalogueByCatalogueIdInfiniteQuery,
+  useGetApiV1CatalogueSearchItemsByCatalogueIdQuery,
+} from "~/store/features/api/newApis";
 import {
   clearItems,
   toggleCheck,
@@ -48,10 +48,10 @@ import {
 import { useAppDispatch, useDispatchImages } from "~/store/hooks";
 
 const config: Config = {
-  maxSelect: 5,
+  maxSelect: 1,
   numberOfColumn: 4,
   mediaType: "image",
-  selectBoxStyle: "number",
+  selectBoxStyle: "tick",
   selectMode: "multiple",
   language: "en",
   theme: "system",
@@ -85,86 +85,30 @@ const config: Config = {
   },
 };
 
-// Add PaginationButtons component at the top level
-const PaginationButtons = ({
-  page,
-  hasMore,
-  onPrevPress,
-  onNextPress,
-  noResults,
-}: {
-  page: number;
-  hasMore: boolean;
-  onPrevPress: () => void;
-  onNextPress: () => void;
-  noResults?: boolean;
-}) => {
-  // Don't show buttons if it's first page and no more results
-  if (page === 1 && !hasMore) return null;
-
-  return (
-    <View className="px-4 py-2">
-      <View className="flex-row items-center justify-center gap-4">
-        <Button
-          variant="outline"
-          onPress={onPrevPress}
-          disabled={page === 1}
-          className="flex-1"
-        >
-          <Text className="text-center font-medium">Previous</Text>
-        </Button>
-        <Button
-          variant="outline"
-          onPress={onNextPress}
-          disabled={!hasMore}
-          className="flex-1"
-        >
-          <Text className="text-center font-medium">Next</Text>
-        </Button>
-      </View>
-      {!hasMore && page > 1 && (
-        <Text className="mt-4 text-center text-gray-600">
-          You have reached the end of the list.
-        </Text>
-      )}
-      {noResults && (
-        <Text className="mt-4 text-center text-gray-600">
-          No items exist for this term.
-        </Text>
-      )}
-    </View>
-  );
-};
-
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState<"asc" | "desc">("desc");
   const [priceSort, setPriceSort] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [searchPage, setSearchPage] = useState(1);
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
   const { setImages } = useDispatchImages();
-  const { data, isLoading, refetch } = useGetCatalogItemsQuery(
-    { id, page, limit: 10, sortDir: sort, priceSort },
-    {
-      skip: !id,
-    },
-  );
-
+  const { data, isLoading, refetch } =
+    useGetApiV1CatalogueByCatalogueIdInfiniteQuery(
+      { catalogueId: id as string, order: sort, priceSort },
+      {
+        skip: !id,
+      },
+    );
+  console.log(data?.pages.flatMap((page) => page.items));
   const {
     data: searchData,
     isLoading: isSearchLoading,
     refetch: refetchSearch,
-  } = useSearchCatalogItemsQuery(
+  } = useGetApiV1CatalogueSearchItemsByCatalogueIdQuery(
     {
-      id: id as string,
-      page: searchPage,
-      limit: 10,
-      sortDir: sort,
-      priceSort,
-      query: debouncedSearchTerm,
+      catalogueId: id as string,
+      search: debouncedSearchTerm,
     },
     {
       skip: debouncedSearchTerm.length === 0 || !id,
@@ -259,23 +203,6 @@ export default function DetailsScreen() {
     );
   };
 
-  // Add pagination handlers
-  const handlePrevPage = () => {
-    if (searchQuery.length > 0) {
-      setSearchPage((prev) => Math.max(1, prev - 1));
-    } else {
-      setPage((prev) => Math.max(1, prev - 1));
-    }
-  };
-
-  const handleNextPage = () => {
-    if (searchQuery.length > 0 && searchData?.pagination.hasMore) {
-      setSearchPage((prev) => prev + 1);
-    } else if (data?.pagination.hasMore) {
-      setPage((prev) => prev + 1);
-    }
-  };
-
   // Modify the handleShare function
   const handleShare = async () => {
     try {
@@ -334,7 +261,8 @@ export default function DetailsScreen() {
             </View>
           ))}
         </View>
-      ) : !data?.items?.length && !searchData?.items?.length ? (
+      ) : !data?.pages.flatMap((page) => page.items).length &&
+        !searchData?.items?.length ? (
         <View className="flex-1 items-center justify-center p-4">
           <Image source={img} style={{ width: 200, height: 200 }} />
           <Text className="mb-4 text-center text-gray-600">No items yet</Text>
@@ -372,7 +300,6 @@ export default function DetailsScreen() {
                   <DropdownMenuItem
                     onPress={() => {
                       setSort("desc");
-                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Date: New to Old</Text>
@@ -383,7 +310,6 @@ export default function DetailsScreen() {
                   <DropdownMenuItem
                     onPress={() => {
                       setSort("asc");
-                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Date: Old to New</Text>
@@ -394,7 +320,6 @@ export default function DetailsScreen() {
                   <DropdownMenuItem
                     onPress={() => {
                       setPriceSort("desc");
-                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Price: High to Low</Text>
@@ -405,7 +330,6 @@ export default function DetailsScreen() {
                   <DropdownMenuItem
                     onPress={() => {
                       setPriceSort("asc");
-                      setPage(1);
                     }}
                   >
                     <Text className="font-medium">Price: Low to High</Text>
@@ -451,14 +375,16 @@ export default function DetailsScreen() {
           {/* Cards Section - Updated */}
           <View className="flex-1 px-4">
             <FlashList
-              data={searchQuery.length > 0 ? searchData?.items : data?.items}
+              data={
+                searchQuery.length > 0
+                  ? searchData?.items
+                  : data?.pages.flatMap((page) => page.items)
+              }
               renderItem={({ item }) => (
                 <CompactCard
                   item={item}
                   id={id}
                   select={selectionMode}
-                  page={page}
-                  searchPage={searchPage}
                   sortDir={sort}
                   priceSort={priceSort}
                 />
@@ -472,20 +398,6 @@ export default function DetailsScreen() {
             />
           </View>
 
-          {/* Add Pagination Buttons */}
-          <PaginationButtons
-            page={searchQuery.length > 0 ? searchPage : page}
-            hasMore={
-              searchQuery.length > 0
-                ? (searchData?.pagination.hasMore ?? false)
-                : (data?.pagination.hasMore ?? false)
-            }
-            onPrevPress={handlePrevPage}
-            onNextPress={handleNextPage}
-            noResults={
-              searchQuery.length > 0 && searchData?.items?.length === 0
-            }
-          />
           {/* <View style={{ position: "fixed", left: -9999 }}> */}
           {checkedImages?.length > 0 ? (
             <PolaroidImageCapture
