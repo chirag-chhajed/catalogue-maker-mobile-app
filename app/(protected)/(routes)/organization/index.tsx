@@ -1,7 +1,13 @@
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
-import { Link, router } from "expo-router";
-import { View, ScrollView, Pressable, TouchableOpacity } from "react-native";
+import { Link } from "expo-router";
+import {
+  View,
+  ScrollView,
+  Pressable,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
 import img from "~/assets/266.png";
@@ -26,7 +32,11 @@ const Index = () => {
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   if (isLoading) {
-    return <Text>Loading...</Text>;
+    return (
+      <View className="flex-1 items-center justify-center">
+        <ActivityIndicator size="large" color="#96d0b0" />
+      </View>
+    );
   }
 
   return (
@@ -61,7 +71,6 @@ const Index = () => {
                 <TouchableOpacity
                   onPress={() => {
                     changeOrganizationId(org.orgId);
-                    router.replace("/(protected)/(routes)/catalogue");
                   }}
                   key={org.orgId}
                 >

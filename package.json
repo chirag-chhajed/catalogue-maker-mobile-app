@@ -17,12 +17,12 @@
     "@gorhom/bottom-sheet": "^5.0.6",
     "@hookform/resolvers": "^3.9.1",
     "@react-native-async-storage/async-storage": "1.23.1",
-    "@react-native-firebase/app": "^21.6.1",
-    "@react-native-firebase/auth": "^21.6.1",
+    "@react-native-firebase/app": "^21.7.2",
+    "@react-native-firebase/auth": "^21.7.2",
     "@react-native-google-signin/google-signin": "^13.1.0",
     "@react-navigation/bottom-tabs": "^7.0.0",
     "@react-navigation/native": "^7.0.0",
-    "@reduxjs/toolkit": "^2.6.1",
+    "@reduxjs/toolkit": "^2.7.0",
     "@rn-primitives/accordion": "^1.1.0",
     "@rn-primitives/alert-dialog": "^1.1.0",
     "@rn-primitives/aspect-ratio": "^1.1.0",
@@ -97,7 +97,7 @@
     "react-redux": "^9.2.0",
     "sonner-native": "^0.16.2",
     "tailwind-merge": "^2.5.5",
-    "zod": "^3.24.1"
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

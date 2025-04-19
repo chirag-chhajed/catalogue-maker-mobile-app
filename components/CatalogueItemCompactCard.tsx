@@ -27,12 +27,13 @@ import { Text } from "~/components/ui/text";
 import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 import { hasPermission } from "~/lib/role";
 import {
-  type ImageType,
-  useDeleteCatalogItemMutation,
-  useUpdateCatalogItemMutation,
-} from "~/store/features/api/catalogueApi";
-import { catalogueApiV2 } from "~/store/features/api/v2/catalogueApiV2";
-import { addImages, removeImages } from "~/store/features/sharableImageSlice";
+  useDeleteApiV1CatalogueByCatalogueIdAndItemIdMutation,
+  usePutApiV1CatalogueByCatalogueIdAndItemIdMutation,
+} from "~/store/features/api/newApis";
+import {
+  addSharableImageGroup,
+  removeSharableImageGroup,
+} from "~/store/features/newSharableImageSlice";
 import { useAppDispatch, useUserState } from "~/store/hooks";
 
 type CardItem = {
@@ -74,21 +75,13 @@ export const CompactCard = ({
   item,
   id,
   select,
-  sortDir,
-  priceSort,
 }: {
   item: CardItem;
   id: string;
   select: boolean;
-  page: number;
-  searchPage: number;
-
-  sortDir: "asc" | "desc";
-  priceSort: "asc" | "desc";
 }) => {
   const insets = useSafeAreaInsets();
-  const [deleteItem] = useDeleteCatalogItemMutation();
-  const [updateItem, { isLoading }] = useUpdateCatalogItemMutation();
+
   const contentInsets = {
     top: insets.top,
     bottom: insets.bottom,
@@ -102,33 +95,25 @@ export const CompactCard = ({
   const handleCheck = (checked: boolean) => {
     if (checked) {
       dispatch(
-        addImages({
-          id,
+        addSharableImageGroup({
           itemId: item.itemId,
-          images: [
-            {
-              id: item.id,
-              blurhash: item.image.blurhash,
-              imageUrl: item.image.imageUrl,
-              checked: true,
-              name: item.name,
-              description: item.description ?? "",
-              price: item.price,
-            },
-          ],
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          image: {
+            imageUrl: item.image.imageUrl,
+            blurhash: item.image.blurhash,
+          },
         }),
       );
     } else {
-      dispatch(
-        removeImages({
-          id,
-          itemId: item.itemId,
-        }),
-      );
+      dispatch(removeSharableImageGroup({ itemId: item.itemId }));
     }
     setChecked(checked);
   };
-
+  const [deleteItem] = useDeleteApiV1CatalogueByCatalogueIdAndItemIdMutation();
+  const [updateItem, { isLoading }] =
+    usePutApiV1CatalogueByCatalogueIdAndItemIdMutation();
   useEffect(() => {
     if (!select) {
       setChecked(false);
@@ -158,14 +143,20 @@ export const CompactCard = ({
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            toast.promise(deleteItem({ id: item.itemId }).unwrap(), {
-              loading: "Deleting...",
-              success: () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                return "Item deleted successfully";
+            toast.promise(
+              deleteItem({
+                itemId: item.itemId,
+                catalogueId: item.catalogueId,
+              }).unwrap(),
+              {
+                loading: "Deleting...",
+                success: () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  return "Item deleted successfully";
+                },
+                error: "Failed to delete Item",
               },
-              error: "Failed to delete Item",
-            });
+            );
           },
         },
       ],
@@ -175,15 +166,21 @@ export const CompactCard = ({
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
     toast.promise(
-      updateItem({ id: item.itemId, catalogueId: id, ...data }).unwrap(),
+      updateItem({
+        itemId: item.itemId,
+        catalogueId: item.catalogueId,
+        body: {
+          ...data,
+        },
+      }).unwrap(),
       {
+        loading: "Updating...",
         success: () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setOpen(false);
           return "Item updated successfully";
         },
-        error: "Failed to update Item",
-        loading: "Updating Item...",
+        error: () => {
+          return "Failed to update Item";
+        },
       },
     );
   };
@@ -196,20 +193,19 @@ export const CompactCard = ({
         contentFit="cover"
         className="rounded-l-lg"
         placeholder={item.image.blurhash}
+        cachePolicy="disk"
       />
 
       <View className="flex-1 p-3">
         <Link
-          href={{
-            pathname: "/(protected)/(routes)/details/[id]",
-            params: {
-              id,
-              title: item.name,
-              catalogueId: item.catalogueId,
-              sortDir,
-              priceSort,
-            },
-          }}
+        // href={{
+        //   pathname: "/(protected)/(routes)/",
+        //   params: {
+        //     id,
+        //     title: item.name,
+        //     catalogueId: item.catalogueId,
+        //   },
+        // }}
         >
           <CardTitle
             className="mb-1 text-base font-bold text-gray-900 underline"

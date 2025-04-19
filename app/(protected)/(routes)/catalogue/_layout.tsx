@@ -45,6 +45,18 @@ const CatalogueLayout = () => {
         })}
       />
       <Stack.Screen
+        name="share"
+        options={{
+          headerTitle: "Share",
+        }}
+      />
+      <Stack.Screen
+        name="all"
+        options={{
+          headerTitle: "All Items",
+        }}
+      />
+      <Stack.Screen
         name="create-catalog"
         options={{
           presentation: "modal",

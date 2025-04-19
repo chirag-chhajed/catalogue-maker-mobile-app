@@ -2,49 +2,36 @@ import {
   openPicker,
   type Config,
 } from "@baronha/react-native-multiple-image-picker";
-import { AntDesign, Feather, FontAwesome6 } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetFlashList } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Image } from "expo-image";
 import { useLocalSearchParams, router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Dimensions, Platform } from "react-native";
+import { View, Pressable, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import { toast } from "sonner-native";
 
-import img from "~/assets/266.png";
 import { CompactCard } from "~/components/CatalogueItemCompactCard";
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Switch } from "~/components/ui/switch";
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 import {
   downloadImagesToCache,
   downloadImagesToGallery,
   downloadInfoImagesToGallery,
 } from "~/lib/downloadImagesToCache";
-import { PolaroidImageCapture } from "~/lib/processImages";
 import {
   useGetApiV1CatalogueByCatalogueIdInfiniteQuery,
   useGetApiV1CatalogueSearchItemsByCatalogueIdQuery,
 } from "~/store/features/api/newApis";
 import {
-  clearItems,
-  toggleCheck,
-  useGetCheckedImages,
-  useGetImagesFromGroup,
-} from "~/store/features/sharableImageSlice";
+  useGetBulkImages,
+  clearSharableImageGroups,
+} from "~/store/features/newSharableImageSlice";
 import { useAppDispatch, useDispatchImages } from "~/store/hooks";
 
 const config: Config = {
@@ -85,22 +72,53 @@ const config: Config = {
   },
 };
 
+const FilterChip = ({
+  active,
+  onPress,
+  children,
+}: {
+  active: boolean;
+  onPress: () => void;
+  children: React.ReactNode;
+}) => (
+  <Pressable
+    onPress={onPress}
+    className={`flex-row items-center rounded-full px-4 py-2 ${
+      active ? "bg-primary" : "bg-secondary/50"
+    }`}
+  >
+    <Text
+      className={active ? "text-primary-foreground" : "text-muted-foreground"}
+    >
+      {children}
+    </Text>
+  </Pressable>
+);
+
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
   const dispatch = useAppDispatch();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sort, setSort] = useState<"asc" | "desc">("desc");
-  const [priceSort, setPriceSort] = useState<"asc" | "desc">("asc");
+  const [sort, setSort] = useState<"asc" | "desc" | null>("desc");
+  const [priceSort, setPriceSort] = useState<"asc" | "desc" | null>(null);
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
   const { setImages } = useDispatchImages();
-  const { data, isLoading, refetch } =
-    useGetApiV1CatalogueByCatalogueIdInfiniteQuery(
-      { catalogueId: id as string, order: sort, priceSort },
-      {
-        skip: !id,
-      },
-    );
-  console.log(data?.pages.flatMap((page) => page.items));
+  const images = useGetBulkImages();
+
+  const {
+    data,
+    isLoading,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useGetApiV1CatalogueByCatalogueIdInfiniteQuery(
+    { catalogueId: id as string, order: sort, priceSort },
+    {
+      skip: !id,
+    },
+  );
+
   const {
     data: searchData,
     isLoading: isSearchLoading,
@@ -123,14 +141,18 @@ export default function DetailsScreen() {
     right: 12,
   };
   const [selectionMode, setSelectionMode] = useState(false);
-  const [index, setIndex] = useState(-1);
+
   const [addInfoToImages, setAddInfoToImages] = useState(false);
   const [processedImages, setProcessedImages] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<
+    "newest" | "oldest" | "expensive" | "cheapest"
+  >("newest");
+
   useEffect(() => {
     if (!selectionMode) {
-      dispatch(clearItems(id));
+      dispatch(clearSharableImageGroups());
     }
-  }, [selectionMode, dispatch, id]);
+  }, [selectionMode, dispatch]);
 
   const pickDocImage = async () => {
     try {
@@ -148,8 +170,6 @@ export default function DetailsScreen() {
     }
   };
   const sheetRef = useRef<BottomSheet>(null);
-  const images = useGetImagesFromGroup(id);
-  const checkedImages = useGetCheckedImages(id);
   const snapPoints = useMemo(() => ["55%"], []);
 
   // callbacks
@@ -158,51 +178,6 @@ export default function DetailsScreen() {
   }, []);
 
   const { width } = Dimensions.get("window");
-  const renderItem = ({
-    item,
-  }: {
-    item: {
-      itemId: string;
-      id: string;
-      imageUrl: string;
-      blurhash: string | null;
-      checked: boolean;
-    };
-  }) => {
-    const imageSize = width / 3 - 8; // 4 columns with 8px gap
-
-    return (
-      <View className="relative">
-        <Image
-          key={item.id}
-          source={{ uri: item.imageUrl }}
-          placeholder={item.blurhash}
-          contentFit="cover"
-          className="rounded-md"
-          style={{
-            width: imageSize,
-            height: imageSize,
-            margin: 4,
-          }}
-        />
-        <Checkbox
-          className="absolute right-2 top-2 "
-          checked={item.checked}
-          onCheckedChange={() => {
-            dispatch(
-              toggleCheck({
-                id,
-                imageId: item.id,
-                itemId: item.itemId,
-              }),
-            );
-          }}
-          hitSlop={20}
-        />
-      </View>
-    );
-  };
-
   // Modify the handleShare function
   const handleShare = async () => {
     try {
@@ -251,128 +226,134 @@ export default function DetailsScreen() {
     }
   };
 
+  type FilterType = "newest" | "oldest" | "expensive" | "cheapest";
+  const handleFilterChange = (filter: FilterType) => {
+    setActiveFilter(filter);
+    switch (filter) {
+      case "newest":
+        setSort("desc");
+        setPriceSort(null); // Reset price sort
+        break;
+      case "oldest":
+        setSort("asc");
+        setPriceSort(null); // Reset price sort
+        break;
+      case "expensive":
+        setPriceSort("desc");
+        setSort(null); // Reset date sort
+        break;
+      case "cheapest":
+        setPriceSort("asc");
+        setSort(null); // Reset date sort
+        break;
+    }
+  };
+
   return (
     <View className="flex-1">
       {isLoading ? (
         <View className="flex-1 px-4">
           {Array.from({ length: 5 }).map((_, index) => (
-            <View key={index} className="my-2">
+            <View key={index} className="mb-2">
               <SkeletonItemCard />
             </View>
           ))}
         </View>
       ) : !data?.pages.flatMap((page) => page.items).length &&
         !searchData?.items?.length ? (
-        <View className="flex-1 items-center justify-center p-4">
-          <Image source={img} style={{ width: 200, height: 200 }} />
-          <Text className="mb-4 text-center text-gray-600">No items yet</Text>
+        <View className="flex-1 items-center justify-center space-y-4 p-4">
+          <View className="h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+            <AntDesign name="inbox" size={40} color={THEME_COLORS.primary} />
+          </View>
+          <Text className="text-center text-muted-foreground">
+            No items yet
+          </Text>
+          <Pressable
+            onPress={pickDocImage}
+            className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          >
+            <AntDesign
+              name="plus"
+              size={24}
+              color={THEME_COLORS.primaryForeground}
+            />
+          </Pressable>
         </View>
       ) : (
         <View className="flex-1">
-          {/* Search and Filter Section */}
-          <View className="flex-row items-center justify-between p-4">
-            <View className="relative mr-2 flex-1 flex-row items-center">
+          {/* Search Section */}
+          <View className="p-4">
+            <View className="relative">
               <Input
                 value={searchQuery}
                 onChangeText={setSearchQuery}
-                placeholder="Search for items..."
-                style={{ flex: 1 }}
-                className=" px-4 py-2 focus:border-blue-500"
+                placeholder="Search items..."
+                className="border-input bg-background pr-10 text-foreground"
               />
               {searchQuery.length > 0 && (
                 <Pressable
                   onPress={() => setSearchQuery("")}
-                  className="absolute right-2 ml-2"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  <AntDesign name="closecircle" size={24} color="#666" />
+                  <AntDesign
+                    name="closecircle"
+                    size={20}
+                    color={THEME_COLORS.mutedForeground}
+                  />
                 </Pressable>
               )}
             </View>
 
-            <View className="flex-row gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Pressable className="rounded-md bg-gray-200 p-2">
-                    <AntDesign name="filter" size={24} color="#666" />
-                  </Pressable>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent insets={contentInsets} className="w-56">
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setSort("desc");
-                    }}
-                  >
-                    <Text className="font-medium">Date: New to Old</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="calendar" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setSort("asc");
-                    }}
-                  >
-                    <Text className="font-medium">Date: Old to New</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="calendar" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setPriceSort("desc");
-                    }}
-                  >
-                    <Text className="font-medium">Price: High to Low</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="arrowup" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onPress={() => {
-                      setPriceSort("asc");
-                    }}
-                  >
-                    <Text className="font-medium">Price: Low to High</Text>
-                    <DropdownMenuShortcut>
-                      <AntDesign name="arrowdown" size={20} color="#666" />
-                    </DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {/* Filter Chips */}
+            <View className="mt-3 flex-row flex-wrap gap-2">
+              <FilterChip
+                active={activeFilter === "newest"}
+                onPress={() => handleFilterChange("newest")}
+              >
+                Newest First
+              </FilterChip>
+              <FilterChip
+                active={activeFilter === "oldest"}
+                onPress={() => handleFilterChange("oldest")}
+              >
+                Oldest First
+              </FilterChip>
+              <FilterChip
+                active={activeFilter === "expensive"}
+                onPress={() => handleFilterChange("expensive")}
+              >
+                Highest Price
+              </FilterChip>
+              <FilterChip
+                active={activeFilter === "cheapest"}
+                onPress={() => handleFilterChange("cheapest")}
+              >
+                Lowest Price
+              </FilterChip>
             </View>
-          </View>
-          <View className="-mt-2 flex flex-row justify-between px-4 pb-2">
-            <Pressable
-              onPress={() => setSelectionMode(!selectionMode)}
-              className="w-fit flex-row items-center justify-between rounded-lg bg-blue-50 p-3 active:bg-blue-100"
-            >
-              <View className="flex-row items-center">
-                <AntDesign
-                  name={selectionMode ? "check" : "select1"}
-                  size={20}
-                  color="#3b82f6"
-                />
-                <Text className="ml-2 font-medium text-blue-600">
+
+            {/* Selection Button */}
+            <View className="mt-3">
+              <Pressable
+                onPress={() => setSelectionMode(!selectionMode)}
+                className={`flex-row items-center rounded-full px-4 py-2 ${
+                  selectionMode ? "bg-primary" : "bg-secondary/50"
+                }`}
+              >
+                <Text
+                  className={
+                    selectionMode
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground"
+                  }
+                >
                   {selectionMode ? "Cancel Selection" : "Select Items"}
                 </Text>
-              </View>
-            </Pressable>
-            {images?.length > 0 ? (
-              <Pressable
-                onPress={() => {
-                  handleSnapPress(0);
-                }}
-                className="mt-2 h-12 w-12 items-center justify-center rounded-full bg-blue-600 shadow-lg shadow-blue-300 active:bg-blue-700"
-              >
-                <Feather
-                  name={Platform.OS === "android" ? "share-2" : "share"}
-                  size={24}
-                  color="white"
-                />
               </Pressable>
-            ) : null}
+            </View>
           </View>
-          {/* Cards Section - Updated */}
+
+          {/* Cards Section */}
           <View className="flex-1 px-4">
             <FlashList
               data={
@@ -381,13 +362,7 @@ export default function DetailsScreen() {
                   : data?.pages.flatMap((page) => page.items)
               }
               renderItem={({ item }) => (
-                <CompactCard
-                  item={item}
-                  id={id}
-                  select={selectionMode}
-                  sortDir={sort}
-                  priceSort={priceSort}
-                />
+                <CompactCard item={item} id={id} select={selectionMode} />
               )}
               extraData={selectionMode}
               estimatedItemSize={385}
@@ -395,109 +370,41 @@ export default function DetailsScreen() {
               showsVerticalScrollIndicator={false}
               onRefresh={searchQuery.length > 0 ? refetchSearch : refetch}
               refreshing={searchQuery.length > 0 ? isSearchLoading : isLoading}
-            />
-          </View>
-
-          {/* <View style={{ position: "fixed", left: -9999 }}> */}
-          {checkedImages?.length > 0 ? (
-            <PolaroidImageCapture
-              groupId={id as string}
-              onCaptureComplete={(results: string[]) => {
-                // console.log(results);
-                setProcessedImages(results);
-              }}
-            />
-          ) : null}
-          {/* </View> */}
-        </View>
-      )}
-      {/* Fixed bottom buttons */}
-      <View className="absolute bottom-6 flex w-full flex-row items-center justify-center gap-16">
-        <Pressable
-          onPress={pickDocImage}
-          className="h-16 w-16 items-center justify-center rounded-full bg-blue-600"
-        >
-          <AntDesign name="picture" size={28} color="white" />
-        </Pressable>
-      </View>
-      <BottomSheet
-        ref={sheetRef}
-        snapPoints={snapPoints}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        onChange={setIndex}
-        index={index}
-      >
-        <BottomSheetFlashList
-          data={images}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          estimatedItemSize={width / 3}
-          numColumns={3}
-          contentContainerStyle={{ padding: 4 }}
-          ListEmptyComponent={
-            <Text className="text-center text-gray-500">
-              No images selected
-            </Text>
-          }
-        />
-        {checkedImages?.length > 0 && (
-          <View className="absolute inset-x-0 bottom-20 flex-row items-center justify-center gap-2 px-4">
-            <Text className="text-sm font-medium text-gray-700">
-              Add Info to Images
-            </Text>
-            <Switch
-              checked={addInfoToImages}
-              onCheckedChange={setAddInfoToImages}
-            />
-          </View>
-        )}
-        {checkedImages?.length > 0 ? (
-          <View className="absolute inset-x-0 bottom-4 flex-row justify-center gap-6 border-gray-200 pt-4">
-            <Pressable
-              onPress={handleShare}
-              className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"
-            >
-              <Feather
-                name={Platform.OS === "android" ? "share-2" : "share"}
-                size={24}
-                color="#374151"
-              />
-            </Pressable>
-
-            <Pressable
-              onPress={async () => {
-                try {
-                  if (!checkedImages?.length) return;
-                  if (addInfoToImages) {
-                    await downloadInfoImagesToGallery(processedImages);
-                    toast.success("Images downloaded to gallery");
-                  } else {
-                    await downloadImagesToGallery(
-                      checkedImages?.map((img) => img.imageUrl),
-                    );
-                    toast.success("Images downloaded to gallery");
-                  }
-
-                  // Alert.alert("Success", "Images downloaded to gallery");
-                } catch {
-                  // Alert.alert("Error", "Failed to download images");
+              onEndReached={() => {
+                if (!searchQuery.length && hasNextPage && !isFetchingNextPage) {
+                  fetchNextPage();
                 }
               }}
-              className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"
-            >
-              <Feather name="download" size={24} color="#374151" />
-            </Pressable>
-
-            <Pressable
-              onPress={handleWhatsAppShare}
-              className="items-center rounded-full bg-slate-200 p-2 shadow-sm active:bg-gray-50"
-            >
-              <FontAwesome6 name="whatsapp" size={24} color="#25D366" />
-            </Pressable>
+            />
           </View>
-        ) : null}
-      </BottomSheet>
+
+          {/* FAB */}
+          <Pressable
+            onPress={pickDocImage}
+            className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+          >
+            <AntDesign
+              name="plus"
+              size={24}
+              color={THEME_COLORS.primaryForeground}
+            />
+          </Pressable>
+          {images.length > 0 ? (
+            <Pressable
+              onPress={() =>
+                router.push(`/(protected)/(routes)/catalogue/share`)
+              }
+              className="absolute bottom-6 left-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+            >
+              <AntDesign
+                name="sharealt"
+                size={24}
+                color={THEME_COLORS.primaryForeground}
+              />
+            </Pressable>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }

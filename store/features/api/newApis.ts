@@ -163,8 +163,8 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/catalogue/${queryArg.catalogueId}`,
         params: {
           cursor: pageParam.cursor,
-          order: queryArg.order,
-          priceSort: queryArg.priceSort,
+          ...(queryArg.order && { order: queryArg.order }),
+          ...(queryArg.priceSort && { priceSort: queryArg.priceSort }),
         },
       }),
       infiniteQueryOptions: {
@@ -192,7 +192,6 @@ const newApis = api.injectEndpoints({
       query: (queryArg) => ({
         url: `/api/v1/catalogue/${queryArg.catalogueId}`,
         method: "DELETE",
-        body: queryArg.body,
       }),
     }),
     getApiV1CatalogueAll: build.infiniteQuery<
@@ -262,7 +261,6 @@ const newApis = api.injectEndpoints({
       query: (queryArg) => ({
         url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
         method: "DELETE",
-        body: queryArg.body,
       }),
     }),
     getApiV1CatalogueSearchItemsByCatalogueId: build.query<
@@ -451,15 +449,11 @@ export type PutApiV1CatalogueByCatalogueIdApiArg = {
   body: {
     name: string;
     description?: string;
-    createdAt: number;
   };
 };
 export type DeleteApiV1CatalogueByCatalogueIdApiResponse = unknown;
 export type DeleteApiV1CatalogueByCatalogueIdApiArg = {
   catalogueId: string;
-  body: {
-    createdAt: number;
-  };
 };
 export type GetApiV1CatalogueAllApiResponse =
   /** status 200 All items retrieved successfully */ {
@@ -495,7 +489,6 @@ export type PostApiV1CatalogueBulkUpdatePricesApiArg = {
     items: {
       catalogueId: string;
       itemId: string;
-      createdAt: number;
     }[];
     operation: "clone" | "update";
     value: number;
@@ -513,7 +506,6 @@ export type PostApiV1CatalogueBulkTransferItemsApiArg = {
     items: {
       catalogueId: string;
       itemId: string;
-      createdAt: number;
     }[];
     newCatalogueId?: string;
     operation: "clone" | "transfer";
@@ -528,7 +520,6 @@ export type DeleteApiV1CatalogueBulkDeleteItemsApiArg = {
     items: {
       catalogueId: string;
       itemId: string;
-      createdAt: number;
     }[];
   };
 };
@@ -543,16 +534,12 @@ export type PutApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
     name: string;
     description?: string;
     price: number;
-    createdAt: number;
   };
 };
 export type DeleteApiV1CatalogueByCatalogueIdAndItemIdApiResponse = unknown;
 export type DeleteApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
   catalogueId: string;
   itemId: string;
-  body: {
-    createdAt: number;
-  };
 };
 export type GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse =
   /** status 200 Catalogues searched successfully */ {

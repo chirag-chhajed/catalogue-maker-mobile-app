@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- The project uses expo react native
+- This project is a mobile application
+
+# Libraries
+
+- The app uses RTK query for data fetching and state management. `./store` are the all the files. But ignore these files [organizationApi.ts](mdc:store/features/api/organizationApi.ts) [invitationApi.ts](mdc:store/features/api/invitationApi.ts) [catalogueApi.ts](mdc:store/features/api/catalogueApi.ts) [authApi.ts](mdc:store/features/api/authApi.ts) [catalogueApiV2.ts](mdc:store/features/api/v2/catalogueApiV2.ts). All the api hooks can be found in [newApis.ts](mdc:store/features/api/newApis.ts) and use them for data fetching in the app.
+- The app uses `react-native-reanimated` and `react-native-gesture-handler` for animation and gesture handling
+- The app uses `expo-image` for images so always use that Image component instead of the default Image comp from react-native
+
+# Components
+
+- All the UI components can be found inside `./components/ui` folder. Prefer them always for making any UI's
+- Prefer nativewind's tailwind style for styling comp but if that don't suffice use the default Stylesheets
+- utilize [global.css](mdc:global.css) colors and if you want to use these colors in comp you can do like `bg-foreground`, `text-background`
+- `./assets` folder contains all the assets of app like images, icons and fonts. 
+- use #F6F4F0 for background or similar linear gradients of pages

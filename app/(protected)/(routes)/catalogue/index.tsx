@@ -1,7 +1,7 @@
 import { AntDesign } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useState } from "react";
 import { View, Pressable } from "react-native";
 
@@ -144,6 +144,17 @@ const Index = () => {
 
           {/* Cards Section */}
           <View className="flex-1 px-4">
+            <Pressable
+              className="mb-4 flex-row items-center justify-between rounded-lg bg-white p-4 shadow-sm"
+              onPress={() => router.push("/(protected)/(routes)/catalogue/all")}
+            >
+              <Text className="text-xl font-semibold">All</Text>
+              <AntDesign
+                name="arrowright"
+                size={24}
+                color={THEME_COLORS.mutedForeground}
+              />
+            </Pressable>
             <FlashList
               data={
                 searchQuery.length > 0

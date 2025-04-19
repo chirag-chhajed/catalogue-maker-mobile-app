@@ -1,120 +1,140 @@
 import { AntDesign } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
-import { Image } from "expo-image";
 import { Link, router } from "expo-router";
-import { View, ScrollView, Pressable, TouchableOpacity } from "react-native";
+import { View, Pressable } from "react-native";
 
-import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
-import {
-  Card,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardTitle } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
 import { cn } from "~/lib/utils";
 import { api } from "~/store/features/api";
-import { useGetOrgsQuery } from "~/store/features/api/organizationApi";
+import { useGetApiV1OrganisationQuery } from "~/store/features/api/newApis";
 import { useOrganitionIdDispatch, useUserState } from "~/store/hooks";
 import { store } from "~/store/store";
 
 const Organization = () => {
-  const { data: organizations, refetch, isLoading } = useGetOrgsQuery();
+  const {
+    data: organizations,
+    refetch,
+    isLoading,
+  } = useGetApiV1OrganisationQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   const user = useUserState();
+
   return (
-    <View className="flex-1 p-4">
+    <View className="flex-1 bg-background">
       {!organizationsExist ? (
-        <View className="flex-1 items-center justify-center">
-          <Image source={img} style={{ width: 200, height: 200 }} />
-          <Text className="mb-4 text-center text-gray-600">
-            You're not part of any organizations yet.
+        <View className="flex-1 items-center justify-center p-4">
+          <View className="mb-8 h-40 w-40 items-center justify-center rounded-full bg-primary/10">
+            <AntDesign name="team" size={64} color="#2563eb" />
+          </View>
+          <Text className="mb-2 text-xl font-bold text-foreground">
+            No Organizations Yet
           </Text>
-          {/* <Link className="mt-4" href={"/(protected)/organization/create-form"}> */}
-          <Pressable className=" rounded-md bg-blue-600 px-6 py-3">
-            <Link
-              href="/(protected)/(routes)/organization/create-form"
-              className="text-center font-semibold text-white"
-            >
-              Create Your First Organization
-            </Link>
-          </Pressable>
-          {/* </Link> */}
+          <Text className="mb-8 text-center text-muted-foreground">
+            Create your first organization to start collaborating with your team
+          </Text>
+          <Link href="/(protected)/(routes)/organization/create-form" asChild>
+            <Pressable className="w-full rounded-lg bg-primary px-6 py-3">
+              <Text className="text-center font-semibold text-primary-foreground">
+                Create Organization
+              </Text>
+            </Pressable>
+          </Link>
         </View>
       ) : (
-        <ScrollView className="mb-4 flex-1">
-          <View className="flex-1">
-            {organizations?.length > 0 ? (
-              <FlashList
-                data={organizations}
-                estimatedItemSize={150}
-                contentContainerStyle={{ padding: 16 }}
-                refreshing={isLoading}
-                onRefresh={refetch}
-                renderItem={({ item: org }) => (
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (user?.organizationId === org.id) return;
-                      store.dispatch(api.util.resetApiState());
-                      changeOrganizationId(org.id);
-                      router.dismissAll();
-                      router.replace("/(protected)/(routes)/catalogue");
-                    }}
-                    key={org.id}
-                  >
-                    <Card
-                      className={cn(
-                        "mb-4 flex w-full flex-row items-end justify-between py-3",
-                        user?.organizationId === org.id
-                          ? "border-2 border-blue-500"
-                          : "",
-                      )}
-                    >
-                      {user?.organizationId === org.id && (
-                        <View className="absolute right-2 top-2 flex-row items-center">
-                          <AntDesign
-                            name="checkcircle"
-                            size={16}
-                            color="#2563eb"
-                          />
-                          <Text className="ml-1 text-xs font-medium text-blue-600">
-                            Current Org
-                          </Text>
-                        </View>
-                      )}
-                      <View>
-                        <CardHeader>
-                          <CardTitle>{org.name}</CardTitle>
-                          <CardDescription>{org.description}</CardDescription>
-                        </CardHeader>
+        <View className="flex-1">
+          <FlashList
+            data={organizations}
+            estimatedItemSize={150}
+            contentContainerStyle={{ padding: 16 }}
+            refreshing={isLoading}
+            onRefresh={refetch}
+            ItemSeparatorComponent={() => <View className="h-3" />}
+            renderItem={({ item: org }) => (
+              <Pressable
+                onPress={() => {
+                  if (user?.organizationId === org.orgId) return;
+                  store.dispatch(api.util.resetApiState());
+                  changeOrganizationId(org.orgId);
+                  router.dismissAll();
+                  router.replace("/(protected)/(routes)/catalogue");
+                }}
+                key={org.orgId}
+              >
+                <Card
+                  className={cn(
+                    "flex-row overflow-hidden bg-card p-4",
+                    user?.organizationId === org.orgId
+                      ? "border-2 border-primary shadow-lg shadow-primary/20"
+                      : "border border-border/50",
+                  )}
+                >
+                  <View className="mr-4 h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <Text className="text-lg font-bold text-primary">
+                      {org.name.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
 
-                        <CardFooter>
-                          <Badge
-                            variant={
-                              org.role === "admin" ? "default" : "secondary"
-                            }
-                          >
-                            <Text className="capitalize">{org.role}</Text>
-                          </Badge>
-                        </CardFooter>
-                      </View>
-                    </Card>
-                  </TouchableOpacity>
-                )}
-              />
-            ) : null}
-          </View>
-        </ScrollView>
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between">
+                      <CardTitle className="text-lg font-bold text-foreground">
+                        {org.name}
+                      </CardTitle>
+                      {user?.organizationId === org.orgId && (
+                        <Badge
+                          variant="default"
+                          className="ml-2 bg-primary/10 px-2"
+                        >
+                          <Text className="text-xs font-medium text-primary">
+                            Active
+                          </Text>
+                        </Badge>
+                      )}
+                    </View>
+
+                    <Text
+                      className="mt-1 text-sm text-muted-foreground"
+                      numberOfLines={2}
+                    >
+                      {org.description}
+                    </Text>
+
+                    <View className="mt-3 flex-row items-center justify-between">
+                      <Badge
+                        variant={org.role === "admin" ? "default" : "secondary"}
+                        className="rounded-full px-3 py-0.5"
+                      >
+                        <Text className="text-xs font-medium capitalize text-primary-foreground">
+                          {org.role}
+                        </Text>
+                      </Badge>
+
+                      <AntDesign
+                        name="right"
+                        size={16}
+                        className="text-muted-foreground"
+                      />
+                    </View>
+                  </View>
+                </Card>
+              </Pressable>
+            )}
+          />
+        </View>
       )}
 
-      <View className="self-center border-t border-gray-200 py-4">
-        <Link href="/(protected)/(routes)/organization/join-form">
-          <Text className="text-center text-blue-600 underline underline-offset-2">
-            Have an invite code to join an organization?
-          </Text>
+      <View className="border-t border-border p-4">
+        <Link href="/(protected)/(routes)/organization/join-form" asChild>
+          <Pressable className="rounded-lg bg-card p-4">
+            <View className="flex-row items-center justify-center">
+              <AntDesign name="plus" size={16} className="text-primary" />
+              <Text className="ml-2 text-sm font-medium text-primary">
+                Join an Organization
+              </Text>
+            </View>
+          </Pressable>
         </Link>
       </View>
     </View>
