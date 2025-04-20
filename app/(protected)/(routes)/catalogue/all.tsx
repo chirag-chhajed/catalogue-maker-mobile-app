@@ -3,7 +3,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useDebounce } from "@uidotdev/usehooks";
 import * as Haptics from "expo-haptics";
-import { useRef, useMemo, useCallback, useState } from "react";
+import { useRef, useMemo, useCallback, useState, useEffect } from "react";
 import { Alert, Pressable, View } from "react-native";
 import { toast } from "sonner-native";
 import { z } from "zod";
@@ -25,9 +25,12 @@ import {
   usePostApiV1CatalogueBulkUpdatePricesMutation,
 } from "~/store/features/api/newApis";
 import {
+  clearSharableImageGroups,
   useGetBulkImages,
   useGetBulkItems,
 } from "~/store/features/newSharableImageSlice";
+import { useAppDispatch } from "~/store/hooks";
+import { router } from "expo-router";
 
 const priceUpdateSchema = z.object({
   mode: z.enum(["increase", "decrease"]),
@@ -73,6 +76,7 @@ const All = () => {
   const [sort, setSort] = useState<"asc" | "desc" | null>("desc");
   const [priceSort, setPriceSort] = useState<"asc" | "desc" | null>(null);
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
+  const dispatch = useAppDispatch();
   const images = useGetBulkImages();
   const items = useGetBulkItems();
   const {
@@ -111,7 +115,11 @@ const All = () => {
   const [activeFilter, setActiveFilter] = useState<
     "newest" | "oldest" | "expensive" | "cheapest"
   >("newest");
-
+  useEffect(() => {
+    if (!selectionMode) {
+      dispatch(clearSharableImageGroups());
+    }
+  }, [selectionMode, dispatch]);
   type FilterType = "newest" | "oldest" | "expensive" | "cheapest";
   const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
@@ -157,7 +165,6 @@ const All = () => {
       {
         loading: "Cloning...",
         success: (result) => {
-          console.log(result);
           sheetRef.current?.close();
           setSelectionMode(false);
           return "Cloned";
@@ -247,7 +254,7 @@ const All = () => {
       },
     );
   };
-  console.log(data);
+
   return (
     <View className="flex-1">
       {isLoading ? (
@@ -409,6 +416,18 @@ const All = () => {
           </View>
         </View>
       )}
+      {images.length > 0 ? (
+        <Pressable
+          onPress={() => router.push(`/(protected)/(routes)/catalogue/share`)}
+          className="absolute bottom-6 left-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg"
+        >
+          <AntDesign
+            name="sharealt"
+            size={24}
+            color={THEME_COLORS.primaryForeground}
+          />
+        </Pressable>
+      ) : null}
       <BottomSheet
         ref={sheetRef}
         snapPoints={snapPoints}

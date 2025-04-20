@@ -1,6 +1,5 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Image, type ImageSize } from "react-native";
-import ViewShot from "react-native-view-shot";
+import { Image } from "react-native";
 import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 
 type ImageWithDetails = {
@@ -10,10 +9,6 @@ type ImageWithDetails = {
   itemId: string;
 };
 
-type ViewShotData = {
-  refs: ViewShot[];
-  imageUrls: string[];
-};
 
 export const imageApi = createApi({
   reducerPath: "imageApi",
@@ -53,19 +48,8 @@ export const imageApi = createApi({
           return { error: error as Error };
         }
       },
-    }),
-    captureViewShots: builder.query<string[], ViewShotData>({
-      queryFn: async ({ refs, imageUrls }) => {
-        try {
-          if (imageUrls.length === 0) return { data: [] };
-          const urls = await Promise.all(refs.map((ref) => ref.capture()));
-          return { data: urls };
-        } catch (error) {
-          return { error: error as Error };
-        }
-      },
-    }),
+    })
   }),
 });
 
-export const { useGetCachedImagesQuery, useCaptureViewShotsQuery } = imageApi;
+export const { useGetCachedImagesQuery } = imageApi;

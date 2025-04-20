@@ -63,6 +63,7 @@ const newApis = api.injectEndpoints({
       GetApiV1InvitationApiArg
     >({
       query: () => ({ url: `/api/v1/invitation` }),
+      providesTags: ['Invitation']
     }),
     postApiV1InvitationAccept: build.mutation<
       PostApiV1InvitationAcceptApiResponse,
@@ -73,6 +74,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Invitation', 'Organization']
     }),
     postApiV1Invitation: build.mutation<
       PostApiV1InvitationApiResponse,
@@ -83,12 +85,14 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Invitation']
     }),
     getApiV1Organisation: build.query<
       GetApiV1OrganisationApiResponse,
       GetApiV1OrganisationApiArg
     >({
       query: () => ({ url: `/api/v1/organisation` }),
+      providesTags: ['Organization']
     }),
     postApiV1Organisation: build.mutation<
       PostApiV1OrganisationApiResponse,
@@ -99,12 +103,14 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Organization']
     }),
     getApiV1OrganisationUsers: build.query<
       GetApiV1OrganisationUsersApiResponse,
       void
     >({
       query: () => ({ url: `/api/v1/organisation/users` }),
+      providesTags: ['Organization']
     }),
     deleteApiV1OrganisationRemoveUserByUserId: build.mutation<
       DeleteApiV1OrganisationRemoveUserByUserIdApiResponse,
@@ -114,6 +120,7 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/organisation/remove-user/${queryArg.userId}`,
         method: "DELETE",
       }),
+      invalidatesTags: ['Organization']
     }),
     postApiV1Catalogue: build.mutation<
       PostApiV1CatalogueApiResponse,
@@ -124,6 +131,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: [{ type: 'Catalogue', id: 'LIST' }]
     }),
     getApiV1Catalogue: build.infiniteQuery<
       GetApiV1CatalogueApiResponse,
@@ -144,6 +152,13 @@ const newApis = api.injectEndpoints({
           return { cursor: lastPage.nextCursor };
         },
       },
+      providesTags: (result) =>
+        result?.items
+          ? [
+            ...result.items.map(({ catalogueId }) => ({ type: 'Catalogue' as const, id: catalogueId })),
+            { type: 'Catalogue' as const, id: 'LIST' }
+          ]
+          : [{ type: 'Catalogue', id: 'LIST' }]
     }),
     postApiV1CatalogueByCatalogueId: build.mutation<
       PostApiV1CatalogueByCatalogueIdApiResponse,
@@ -159,6 +174,7 @@ const newApis = api.injectEndpoints({
           price: queryArg.price,
         },
       }),
+      invalidatesTags: (result, error, arg) => [{ type: 'Catalogue', id: arg.catalogueId }]
     }),
     getApiV1CatalogueByCatalogueId: build.infiniteQuery<
       GetApiV1CatalogueByCatalogueIdApiResponse,
@@ -180,6 +196,10 @@ const newApis = api.injectEndpoints({
           return { cursor: lastPage.nextCursor };
         },
       },
+      providesTags: (result, error, arg) => [
+        { type: 'Catalogue', id: arg.catalogueId },
+        { type: 'Item', id: 'LIST' }
+      ]
     }),
     putApiV1CatalogueByCatalogueId: build.mutation<
       PutApiV1CatalogueByCatalogueIdApiResponse,
@@ -190,6 +210,7 @@ const newApis = api.injectEndpoints({
         method: "PUT",
         body: queryArg.body,
       }),
+      invalidatesTags: (result, error, arg) => [{ type: 'Catalogue', id: arg.catalogueId }]
     }),
     deleteApiV1CatalogueByCatalogueId: build.mutation<
       DeleteApiV1CatalogueByCatalogueIdApiResponse,
@@ -199,6 +220,10 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/catalogue/${queryArg.catalogueId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Catalogue', id: arg.catalogueId },
+        { type: 'Catalogue', id: 'LIST' }
+      ]
     }),
     getApiV1CatalogueByCatalogueIdAndItemId: build.query<
       GetApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -207,6 +232,10 @@ const newApis = api.injectEndpoints({
       query: (queryArg) => ({
         url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
       }),
+      providesTags: (result, error, arg) => [
+        { type: 'Item', id: arg.itemId },
+        { type: 'Catalogue', id: arg.catalogueId }
+      ]
     }),
     getApiV1CatalogueAll: build.infiniteQuery<
       GetApiV1CatalogueAllApiResponse,
@@ -238,6 +267,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Item', 'Catalogue']
     }),
     postApiV1CatalogueBulkTransferItems: build.mutation<
       PostApiV1CatalogueBulkTransferItemsApiResponse,
@@ -248,6 +278,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Item', 'Catalogue']
     }),
     deleteApiV1CatalogueBulkDeleteItems: build.mutation<
       DeleteApiV1CatalogueBulkDeleteItemsApiResponse,
@@ -258,6 +289,7 @@ const newApis = api.injectEndpoints({
         method: "DELETE",
         body: queryArg.body,
       }),
+      invalidatesTags: ['Item', 'Catalogue']
     }),
     putApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
       PutApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -268,6 +300,10 @@ const newApis = api.injectEndpoints({
         method: "PUT",
         body: queryArg.body,
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Item', id: arg.itemId },
+        { type: 'Item', id: 'LIST' }
+      ]
     }),
     deleteApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
       DeleteApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -277,6 +313,10 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
         method: "DELETE",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Item', id: arg.itemId },
+        { type: 'Item', id: 'LIST' }
+      ]
     }),
     getApiV1CatalogueSearchItemsByCatalogueId: build.query<
       GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse,
