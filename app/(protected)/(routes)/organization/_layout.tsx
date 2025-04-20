@@ -1,16 +1,11 @@
 import { AntDesign } from "@expo/vector-icons";
-import { Link, Stack, Redirect } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { Pressable } from "react-native";
 
 import { Text } from "~/components/ui/text";
 import { THEME_COLORS } from "~/lib/constants";
-import { useUserState } from "~/store/hooks";
 
 export default function OrganizationLayout() {
-  const user = useUserState();
-  if (user?.organizationId) {
-    return <Redirect href="/(protected)/(routes)/catalogue" />;
-  }
   return (
     <Stack>
       <Stack.Screen

@@ -198,7 +198,11 @@ export const CompactCard = ({
       <View className="flex-1 p-3">
         <Link
           href={{
-            pathname: "/(protected)/(routes)/catalogue/all",
+            pathname: "/(protected)/(routes)/catalogue/[catalogueId.itemId]",
+            params: {
+              catalogueId: item.catalogueId,
+              itemId: item.itemId,
+            },
           }}
         >
           <CardTitle
@@ -315,39 +319,39 @@ export const CompactCard = ({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-96">
           <FormProvider {...form}>
-            <View className="w-full max-w-md rounded-lg bg-white shadow-sm">
-              <Text className="text-2xl font-bold text-gray-800">
+            <View className="w-full rounded-xl bg-background p-4">
+              <Text className="font-mono text-2xl font-bold text-foreground">
                 Update Catalogue Item
               </Text>
-              <Text className="mb-6 mt-2 text-sm text-gray-600">
+              <Text className="mt-2 font-mono text-sm text-muted-foreground">
                 Update details for your Item
               </Text>
-              <View>
+              <View className="mt-6 space-y-4">
                 <Controller
                   control={form.control}
                   name="name"
                   render={({
                     field: { onChange, onBlur, value },
                     fieldState: { error },
-                  }) => {
-                    return (
-                      <View className="mb-4">
-                        <Text className="mb-1 text-sm font-medium text-gray-700">
-                          Name
+                  }) => (
+                    <View>
+                      <Text className="mb-2 font-mono text-sm font-medium text-foreground">
+                        Name
+                      </Text>
+                      <TextInput
+                        className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
+                        value={value}
+                        onChangeText={onChange}
+                        onChange={onBlur}
+                        placeholder="Enter Catalogue name"
+                      />
+                      {error?.message && (
+                        <Text className="mt-1 font-mono text-sm text-destructive">
+                          {error.message}
                         </Text>
-                        <TextInput
-                          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                          value={value}
-                          onChangeText={onChange}
-                          onChange={onBlur}
-                          placeholder="Enter Catalogue name"
-                        />
-                        <Text className="mb-1 text-sm text-red-500">
-                          {error?.message}
-                        </Text>
-                      </View>
-                    );
-                  }}
+                      )}
+                    </View>
+                  )}
                 />
                 <Controller
                   control={form.control}
@@ -355,28 +359,28 @@ export const CompactCard = ({
                   render={({
                     field: { onChange, onBlur, value },
                     fieldState: { error },
-                  }) => {
-                    return (
-                      <View className="mb-4">
-                        <Text className="mb-1 text-sm font-medium text-gray-700">
-                          Description
+                  }) => (
+                    <View>
+                      <Text className="mb-2 font-mono text-sm font-medium text-foreground">
+                        Description
+                      </Text>
+                      <TextInput
+                        className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        placeholder="Enter Catalogue description"
+                        multiline
+                        numberOfLines={3}
+                        textAlignVertical="top"
+                      />
+                      {error?.message && (
+                        <Text className="mt-1 font-mono text-sm text-destructive">
+                          {error.message}
                         </Text>
-                        <TextInput
-                          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
-                          value={value}
-                          onChangeText={onChange}
-                          onBlur={onBlur}
-                          placeholder="Enter Catalogue description"
-                          multiline
-                          numberOfLines={3}
-                          textAlignVertical="top"
-                        />
-                        <Text className="mb-1 text-sm text-red-500">
-                          {error?.message}
-                        </Text>
-                      </View>
-                    );
-                  }}
+                      )}
+                    </View>
+                  )}
                 />
                 <Controller
                   control={form.control}
@@ -385,30 +389,33 @@ export const CompactCard = ({
                     field: { onChange, onBlur, value },
                     fieldState: { error },
                   }) => (
-                    <View className="mb-2">
-                      <Text className="mb-1 text-sm font-medium text-gray-700">
+                    <View>
+                      <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                         Price
                       </Text>
                       <TextInput
-                        className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
+                        className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                         value={value}
                         onChangeText={onChange}
                         onBlur={onBlur}
                         placeholder="Enter price"
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
+                        inputMode="decimal"
                       />
-                      <Text className="mb-1 text-sm text-red-500">
-                        {error?.message}
-                      </Text>
+                      {error?.message && (
+                        <Text className="mt-1 font-mono text-sm text-destructive">
+                          {error.message}
+                        </Text>
+                      )}
                     </View>
                   )}
                 />
                 <Button
                   onPress={form.handleSubmit(handleSubmit)}
                   disabled={form.formState.isSubmitting || isLoading}
-                  className="mt-4 w-full rounded-md bg-blue-600 py-3"
+                  className="mt-6 w-full rounded-lg bg-primary py-3"
                 >
-                  <Text className="text-center font-semibold text-white">
+                  <Text className="font-mono font-semibold text-primary-foreground">
                     Update Catalogue
                   </Text>
                 </Button>

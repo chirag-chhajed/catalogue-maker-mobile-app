@@ -1,7 +1,7 @@
 import { AntDesign, FontAwesome6 } from "@expo/vector-icons";
 import { Image as ExpoImage } from "expo-image";
 import { router } from "expo-router";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Dimensions, ScrollView, View, Pressable } from "react-native";
 import Share from "react-native-share";
 import ViewShot from "react-native-view-shot";
@@ -10,10 +10,7 @@ import { Text } from "~/components/ui/text";
 import { THEME_COLORS } from "~/lib/constants";
 import { downloadImagesToGallery } from "~/lib/downloadImagesToCache";
 import { cn } from "~/lib/utils";
-import {
-  useCaptureViewShotsQuery,
-  useGetCachedImagesQuery,
-} from "~/store/features/api/imageApi";
+import { useGetCachedImagesQuery } from "~/store/features/api/imageApi";
 import { useGetBulkImages } from "~/store/features/newSharableImageSlice";
 import { useShareType } from "~/store/features/sharetype";
 
@@ -23,20 +20,39 @@ const ShareScreen = () => {
   const { data, isLoading } = useGetCachedImagesQuery(images);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const viewShotRefs = useRef<ViewShot[]>([]);
-  const { data: viewShotUrls, isLoading: isCapturing } =
-    useCaptureViewShotsQuery(
-      {
-        refs: viewShotRefs.current,
-        imageUrls: data?.map((image) => image.image) || [],
-      },
-      {
-        skip: !data || loadedImages.size !== data.length,
-      },
-    );
+  const [viewShotUrls, setViewShotUrls] = useState<string[]>([]);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   const handleImageLoad = (imageUrl: string) => {
     setLoadedImages((prev) => new Set([...prev, imageUrl]));
   };
+
+  // Capture view shots when all images are loaded
+  useEffect(() => {
+    const captureViewShots = async () => {
+      if (
+        shareType &&
+        data &&
+        loadedImages.size === data.length &&
+        viewShotRefs.current &&
+        viewShotRefs.current.length > 0
+      ) {
+        setIsCapturing(true);
+        try {
+          const urls = await Promise.all(
+            viewShotRefs.current.map((ref) => ref.capture()),
+          );
+          setViewShotUrls(urls);
+        } catch (error) {
+          console.error("Error capturing view shots:", error);
+        } finally {
+          setIsCapturing(false);
+        }
+      }
+    };
+
+    captureViewShots();
+  }, [shareType, data, loadedImages.size]);
 
   const handleWhatsAppShare = async () => {
     await Share.open({
@@ -51,7 +67,9 @@ const ShareScreen = () => {
     if (shareType) {
       await downloadImagesToGallery(viewShotUrls || []);
     } else {
-      await downloadImagesToGallery(data?.map((image) => image.image) || []);
+      await downloadImagesToGallery(
+        images.map((image) => image.imageUrl) || [],
+      );
     }
   };
   if (isLoading)
@@ -108,9 +126,9 @@ const ShareScreen = () => {
                         source={{ uri: image.image }}
                         style={{ width: imageWidth, height: imageHeight }}
                         onLoadEnd={() => handleImageLoad(image.image)}
-                        contentFit="cover"
+                        contentFit="contain"
                       />
-                      <View className="flex-row justify-between pb-2 pt-4">
+                      <View className="flex-row justify-between pb-2 ">
                         <Text className="font-mono text-lg font-bold">
                           {image.name}
                         </Text>
@@ -125,7 +143,7 @@ const ShareScreen = () => {
                     source={{ uri: image.image }}
                     style={{ width: imageWidth, height: imageHeight }}
                     onLoadEnd={() => handleImageLoad(image.image)}
-                    contentFit="cover"
+                    contentFit="contain"
                   />
                 )}
               </View>
@@ -160,9 +178,9 @@ const ShareScreen = () => {
                       source={{ uri: image.image }}
                       style={{ width: screenWidth - 56, height: imageHeight }}
                       onLoadEnd={() => handleImageLoad(image.image)}
-                      contentFit="cover"
+                      contentFit="contain"
                     />
-                    <View className="flex-row justify-between pb-2 pt-4">
+                    <View className="flex-row justify-between pb-2 ">
                       <Text className="font-mono text-lg font-bold">
                         {image.name}
                       </Text>
@@ -178,7 +196,7 @@ const ShareScreen = () => {
                   style={{ width: screenWidth - 56, height: imageHeight }}
                   className="mx-4"
                   onLoadEnd={() => handleImageLoad(image.image)}
-                  contentFit="cover"
+                  contentFit="contain"
                 />
               )}
             </View>
@@ -194,6 +212,7 @@ const ShareScreen = () => {
               urls: shareType
                 ? viewShotUrls
                 : data?.map((image) => image.image),
+              type: "image/jpeg",
             }).then(() => {
               router.back();
             });

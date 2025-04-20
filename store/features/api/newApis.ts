@@ -203,7 +203,8 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/catalogue/all`,
         params: {
           cursor: pageParam.cursor,
-          order: queryArg.order,
+          ...(queryArg.order && { order: queryArg.order }),
+          ...(queryArg.priceSort && { priceSort: queryArg.priceSort }),
         },
       }),
       infiniteQueryOptions: {
@@ -479,6 +480,7 @@ export type GetApiV1CatalogueAllApiResponse =
 export type GetApiV1CatalogueAllApiArg = {
   cursor?: string;
   order?: "asc" | "desc";
+  priceSort?: "asc" | "desc";
 };
 export type PostApiV1CatalogueBulkUpdatePricesApiResponse =
   /** status 200 Prices updated successfully */ {

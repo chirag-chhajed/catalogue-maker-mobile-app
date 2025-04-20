@@ -103,14 +103,14 @@ const UpdateCatalogueForm = ({
 }) => {
   return (
     <FormProvider {...form}>
-      <View className="w-full max-w-md rounded-lg bg-white shadow-sm">
-        <Text className="text-2xl font-bold text-gray-800">
+      <View className="w-full rounded-xl bg-background p-4">
+        <Text className="font-mono text-2xl font-bold text-foreground">
           Update Catalogue
         </Text>
-        <Text className="mb-6 mt-2 text-sm text-gray-600">
+        <Text className="mt-2 font-mono text-sm text-muted-foreground">
           Update details for your Catalogue
         </Text>
-        <View>
+        <View className="mt-6 gap-4">
           <Controller
             control={form.control}
             name="name"
@@ -118,20 +118,22 @@ const UpdateCatalogueForm = ({
               field: { onChange, onBlur, value },
               fieldState: { error },
             }) => (
-              <View className="mb-4">
-                <Text className="mb-1 text-sm font-medium text-gray-700">
+              <View>
+                <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                   Name
                 </Text>
                 <TextInput
-                  className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
+                  className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                   value={value}
                   onChangeText={onChange}
                   onChange={onBlur}
                   placeholder="Enter Catalogue name"
                 />
-                <Text className="mb-1 text-sm text-red-500">
-                  {error?.message}
-                </Text>
+                {error?.message && (
+                  <Text className="mt-1 font-mono text-sm text-destructive">
+                    {error.message}
+                  </Text>
+                )}
               </View>
             )}
           />
@@ -142,12 +144,12 @@ const UpdateCatalogueForm = ({
               field: { onChange, onBlur, value },
               fieldState: { error },
             }) => (
-              <View className="mb-4">
-                <Text className="mb-1 text-sm font-medium text-gray-700">
+              <View>
+                <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                   Description
                 </Text>
                 <TextInput
-                  className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500"
+                  className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -156,18 +158,20 @@ const UpdateCatalogueForm = ({
                   numberOfLines={3}
                   textAlignVertical="top"
                 />
-                <Text className="mb-1 text-sm text-red-500">
-                  {error?.message}
-                </Text>
+                {error?.message && (
+                  <Text className="mt-1 font-mono text-sm text-destructive">
+                    {error.message}
+                  </Text>
+                )}
               </View>
             )}
           />
           <Button
             onPress={form.handleSubmit(onSubmit)}
             disabled={form.formState.isSubmitting || isLoading}
-            className="mt-4 w-full rounded-md bg-blue-600 py-3"
+            className="mt-6 w-full rounded-lg bg-primary py-3"
           >
-            <Text className="text-center font-semibold text-white">
+            <Text className="font-mono font-semibold text-primary-foreground">
               Update Catalogue
             </Text>
           </Button>
@@ -331,7 +335,7 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
+          <DialogContent className="w-96">
             <UpdateCatalogueForm
               item={item}
               isLoading={isLoading}

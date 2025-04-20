@@ -6,6 +6,7 @@ import { View, Pressable } from "react-native";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardTitle } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
+import { THEME_COLORS } from "~/lib/constants";
 import { cn } from "~/lib/utils";
 import { api } from "~/store/features/api";
 import { useGetApiV1OrganisationQuery } from "~/store/features/api/newApis";
@@ -21,13 +22,13 @@ const Organization = () => {
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   const user = useUserState();
-
+  console.log(organizations);
   return (
     <View className="flex-1 bg-background">
       {!organizationsExist ? (
         <View className="flex-1 items-center justify-center p-4">
           <View className="mb-8 h-40 w-40 items-center justify-center rounded-full bg-primary/10">
-            <AntDesign name="team" size={64} color="#2563eb" />
+            <AntDesign name="team" size={64} color={THEME_COLORS.primary} />
           </View>
           <Text className="mb-2 text-xl font-bold text-foreground">
             No Organizations Yet

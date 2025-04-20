@@ -36,7 +36,7 @@ const baseQueryWithReauth: BaseQueryFn<
   const organizationId = (api.getState() as RootState).orgId.organizationId;
   if (result.error?.status === 403) {
     const refreshResult = (await baseQuery(
-      `/auth/refresh?organizationId=${organizationId}`,
+      `/api/v1/auth/refresh?organizationId=${organizationId}`,
       api,
       extraOptions,
     )) as {

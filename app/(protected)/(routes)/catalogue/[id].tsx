@@ -10,7 +10,6 @@ import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Pressable, Alert } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { toast } from "sonner-native";
 import * as z from "zod";
 
@@ -21,10 +20,6 @@ import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
 import { THEME_COLORS } from "~/lib/constants";
-import {
-  downloadImagesToCache,
-  downloadImagesToGallery,
-} from "~/lib/downloadImagesToCache";
 import { cn } from "~/lib/utils";
 import {
   useDeleteApiV1CatalogueBulkDeleteItemsMutation,
@@ -160,13 +155,6 @@ export default function DetailsScreen() {
     },
   );
 
-  const insets = useSafeAreaInsets();
-  const contentInsets = {
-    top: insets.top,
-    bottom: insets.bottom,
-    left: 12,
-    right: 12,
-  };
   const [selectionMode, setSelectionMode] = useState(false);
 
   const [activeFilter, setActiveFilter] = useState<
@@ -300,12 +288,12 @@ export default function DetailsScreen() {
               }).unwrap(),
               {
                 loading: "Deleting",
-                success: (result) => {
+                success: () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   setSelectionMode(false);
                   return "Deleted";
                 },
-                error: (error) => {
+                error: () => {
                   return "Error";
                 },
               },
@@ -494,7 +482,7 @@ export default function DetailsScreen() {
                   : data?.pages.flatMap((page) => page.items)
               }
               renderItem={({ item }) => (
-                <CompactCard item={item} id={id} select={selectionMode} />
+                <CompactCard item={item} select={selectionMode} />
               )}
               extraData={selectionMode}
               estimatedItemSize={385}

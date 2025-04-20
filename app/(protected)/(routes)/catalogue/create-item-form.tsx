@@ -42,7 +42,6 @@ export default function CreateItemForm() {
   });
 
   const { id } = useLocalSearchParams();
-  console.log(id);
   const [create, { isLoading }] = usePostApiV1CatalogueByCatalogueIdMutation();
   const images = useGetImages();
   const handleSubmit = async (data: z.infer<typeof schema>) => {
@@ -80,7 +79,7 @@ export default function CreateItemForm() {
       <View className="mb-8 items-center">
         <ImageModal
           key={images[0]?.uri}
-          resizeMode="cover"
+          resizeMode="contain"
           source={{ uri: images[0]?.uri }}
           style={{ height: 150, width: 150 }}
           renderImageComponent={({ source, resizeMode, style }) => (
@@ -95,16 +94,15 @@ export default function CreateItemForm() {
       </View>
 
       <FormProvider {...form}>
-        <View className="w-full max-w-md rounded-lg bg-card p-6 shadow-sm">
-          <Text className="text-2xl font-bold text-foreground">
+        <View className="w-full rounded-xl bg-background p-4">
+          <Text className="font-mono text-2xl font-bold text-foreground">
             Create New Item
           </Text>
-          <Text className="mb-6 mt-2 text-sm text-muted-foreground">
+          <Text className="mt-2 font-mono text-sm text-muted-foreground">
             Enter details for your new item
           </Text>
 
-          <View>
-            {/* Name Input */}
+          <View className="mt-6 gap-4">
             <Controller
               control={form.control}
               name="name"
@@ -112,26 +110,62 @@ export default function CreateItemForm() {
                 field: { onChange, onBlur, value },
                 fieldState: { error },
               }) => (
-                <View className="mb-4">
-                  <Text className="mb-1 text-sm font-medium text-foreground">
+                <View>
+                  <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                     Name
                   </Text>
                   <TextInput
-                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     placeholder="Enter item name"
                     placeholderTextColor={THEME_COLORS.mutedForeground}
                   />
-                  <Text className="mb-1 text-sm text-destructive">
-                    {error?.message}
-                  </Text>
+                  {error?.message && (
+                    <Text className="mt-1 font-mono text-sm text-destructive">
+                      {error.message}
+                    </Text>
+                  )}
                 </View>
               )}
             />
 
-            {/* Description Input */}
+            <Controller
+              control={form.control}
+              name="price"
+              render={({
+                field: { onChange, onBlur, value },
+                fieldState: { error },
+              }) => (
+                <View>
+                  <Text className="mb-2 font-mono text-sm font-medium text-foreground">
+                    Price
+                  </Text>
+                  <View className="relative">
+                    <Text className="absolute left-4 top-1/2 -translate-y-1/2 font-mono text-foreground">
+                      $
+                    </Text>
+                    <TextInput
+                      className="w-full rounded-lg border border-border bg-input py-2.5 pl-7 pr-4 font-mono text-foreground"
+                      value={value}
+                      onChangeText={onChange}
+                      onBlur={onBlur}
+                      placeholder="0.00"
+                      inputMode="decimal"
+                      keyboardType="decimal-pad"
+                      placeholderTextColor={THEME_COLORS.mutedForeground}
+                    />
+                  </View>
+                  {error?.message && (
+                    <Text className="mt-1 font-mono text-sm text-destructive">
+                      {error.message}
+                    </Text>
+                  )}
+                </View>
+              )}
+            />
+
             <Controller
               control={form.control}
               name="description"
@@ -139,12 +173,12 @@ export default function CreateItemForm() {
                 field: { onChange, onBlur, value },
                 fieldState: { error },
               }) => (
-                <View className="mb-4">
-                  <Text className="mb-1 text-sm font-medium text-foreground">
+                <View>
+                  <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                     Description
                   </Text>
                   <TextInput
-                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -154,42 +188,11 @@ export default function CreateItemForm() {
                     textAlignVertical="top"
                     placeholderTextColor={THEME_COLORS.mutedForeground}
                   />
-                  <Text className="mb-1 text-sm text-destructive">
-                    {error?.message}
-                  </Text>
-                </View>
-              )}
-            />
-
-            {/* Price Input */}
-            <Controller
-              control={form.control}
-              name="price"
-              render={({
-                field: { onChange, onBlur, value },
-                fieldState: { error },
-              }) => (
-                <View className="mb-4">
-                  <Text className="mb-1 text-sm font-medium text-foreground">
-                    Price
-                  </Text>
-                  <View className="relative">
-                    <Text className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground">
-                      $
+                  {error?.message && (
+                    <Text className="mt-1 font-mono text-sm text-destructive">
+                      {error.message}
                     </Text>
-                    <TextInput
-                      className="w-full rounded-md border border-input bg-background py-2 pl-7 pr-4 text-foreground focus:border-ring"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      placeholder="0.00"
-                      keyboardType="numeric"
-                      placeholderTextColor={THEME_COLORS.mutedForeground}
-                    />
-                  </View>
-                  <Text className="mb-1 text-sm text-destructive">
-                    {error?.message}
-                  </Text>
+                  )}
                 </View>
               )}
             />
@@ -197,9 +200,9 @@ export default function CreateItemForm() {
             <Button
               onPress={form.handleSubmit(handleSubmit)}
               disabled={isLoading || form.formState.isSubmitting}
-              className="mt-4 w-full rounded-md bg-primary py-3"
+              className="mt-6 w-full rounded-lg bg-primary py-3"
             >
-              <Text className="text-center font-semibold text-primary-foreground">
+              <Text className="font-mono font-semibold text-primary-foreground">
                 Create Item
               </Text>
             </Button>

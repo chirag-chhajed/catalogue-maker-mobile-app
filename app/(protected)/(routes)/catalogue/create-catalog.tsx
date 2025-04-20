@@ -64,15 +64,15 @@ export default function CreateCatalogForm() {
       </View>
 
       <FormProvider {...form}>
-        <View className="w-full max-w-md rounded-lg bg-card p-6 shadow-sm">
-          <Text className="text-2xl font-bold text-foreground">
+        <View className="w-full rounded-xl bg-background p-4">
+          <Text className="font-mono text-2xl font-bold text-foreground">
             Create New Catalogue
           </Text>
-          <Text className="mb-6 mt-2 text-sm text-muted-foreground">
+          <Text className="mt-2 font-mono text-sm text-muted-foreground">
             Enter details for your new Catalogue
           </Text>
 
-          <View>
+          <View className="mt-6 gap-4">
             <Controller
               control={form.control}
               name="name"
@@ -80,23 +80,26 @@ export default function CreateCatalogForm() {
                 field: { onChange, onBlur, value },
                 fieldState: { error },
               }) => (
-                <View className="mb-4">
-                  <Text className="mb-1 text-sm font-medium text-foreground">
+                <View>
+                  <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                     Name
                   </Text>
                   <TextInput
-                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                     value={value}
                     onChangeText={onChange}
-                    onChange={onBlur}
+                    onBlur={onBlur}
                     placeholder="Enter Catalogue name"
                   />
-                  <Text className="mb-1 text-sm text-destructive">
-                    {error?.message}
-                  </Text>
+                  {error?.message && (
+                    <Text className="mt-1 font-mono text-sm text-destructive">
+                      {error.message}
+                    </Text>
+                  )}
                 </View>
               )}
             />
+
             <Controller
               control={form.control}
               name="description"
@@ -104,12 +107,12 @@ export default function CreateCatalogForm() {
                 field: { onChange, onBlur, value },
                 fieldState: { error },
               }) => (
-                <View className="mb-4">
-                  <Text className="mb-1 text-sm font-medium text-foreground">
+                <View>
+                  <Text className="mb-2 font-mono text-sm font-medium text-foreground">
                     Description
                   </Text>
                   <TextInput
-                    className="w-full rounded-md border border-input bg-background px-4 py-2 text-foreground focus:border-ring"
+                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 font-mono text-foreground"
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -118,18 +121,21 @@ export default function CreateCatalogForm() {
                     numberOfLines={3}
                     textAlignVertical="top"
                   />
-                  <Text className="mb-1 text-sm text-destructive">
-                    {error?.message}
-                  </Text>
+                  {error?.message && (
+                    <Text className="mt-1 font-mono text-sm text-destructive">
+                      {error.message}
+                    </Text>
+                  )}
                 </View>
               )}
             />
+
             <Button
               onPress={form.handleSubmit(handleSubmit)}
               disabled={form.formState.isSubmitting || isLoading}
-              className="mt-4 w-full rounded-md bg-primary py-3"
+              className="mt-6 w-full rounded-lg bg-primary py-3"
             >
-              <Text className="text-center font-semibold text-primary-foreground">
+              <Text className="font-mono font-semibold text-primary-foreground">
                 Create Catalogue
               </Text>
             </Button>

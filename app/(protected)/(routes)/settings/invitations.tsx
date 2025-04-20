@@ -8,6 +8,9 @@ import { toast } from "sonner-native";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { THEME_COLORS } from "~/lib/constants";
+import { cn } from "~/lib/utils";
 import {
   useCreateInvitationMutation,
   useGetInvitationsQuery,
@@ -15,28 +18,32 @@ import {
 
 const Invitations = () => {
   const [role, setRole] = useState<"editor" | "viewer">("editor");
+  const [tab, setTab] = useState<"invitations" | "users">("invitations");
   const [create, { isLoading }] = useCreateInvitationMutation();
   const {
     data: invitations,
     isLoading: refreshing,
     refetch,
   } = useGetInvitationsQuery();
+
   return (
-    <View className="flex-1 bg-gray-50 p-4">
-      <View className="mb-6">
-        <Text className="mb-4 text-xl font-bold text-gray-900">
+    <View className="flex-1 bg-background p-4">
+      <View className="mb-6 rounded-xl bg-card p-4">
+        <Text className="font-mono text-xl font-bold text-foreground">
           Create Invitation
         </Text>
-        <RadioGroup value={role} onValueChange={setRole} className="gap-3">
-          <RadioGroupItemWithLabel
-            value="editor"
-            onLabelPress={() => setRole("editor")}
-          />
-          <RadioGroupItemWithLabel
-            value="viewer"
-            onLabelPress={() => setRole("viewer")}
-          />
-        </RadioGroup>
+        <View className="mt-4">
+          <RadioGroup value={role} onValueChange={setRole} className="gap-3">
+            <RadioGroupItemWithLabel
+              value="editor"
+              onLabelPress={() => setRole("editor")}
+            />
+            <RadioGroupItemWithLabel
+              value="viewer"
+              onLabelPress={() => setRole("viewer")}
+            />
+          </RadioGroup>
+        </View>
         <Button
           disabled={isLoading}
           onPress={() => {
@@ -49,28 +56,40 @@ const Invitations = () => {
               error: "Failed to create invitation",
             });
           }}
-          className="mt-4 w-full rounded-md bg-blue-600 py-3"
+          className="mt-6 w-full rounded-lg bg-primary py-3"
         >
-          <Text className="font-semibold text-white">Generate Invitation</Text>
+          <Text className="font-mono font-semibold text-primary-foreground">
+            Generate Invitation
+          </Text>
         </Button>
       </View>
 
-      <View className="flex-1">
-        <Text className="mb-4 text-xl font-bold text-gray-900">
-          Active Invitations
-        </Text>
-        {invitations?.length > 0 ? (
-          <FlashList
-            data={invitations}
-            renderItem={({ item }) => <InvitationCard item={item} />}
-            estimatedItemSize={100}
-            ItemSeparatorComponent={() => <View className="h-2" />}
-            contentContainerClassName="pb-4"
-            refreshing={refreshing}
-            onRefresh={refetch}
-          />
-        ) : null}
-      </View>
+      <Tabs value={tab} onValueChange={setTab} className="flex-1">
+        <TabsList className="mb-4">
+          <TabsTrigger value="invitations">Invitations</TabsTrigger>
+          <TabsTrigger value="users">Users</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="invitations" className="flex-1">
+          {invitations?.length && invitations.length > 0 ? (
+            <FlashList
+              data={invitations}
+              renderItem={({ item }) => <InvitationCard item={item} />}
+              estimatedItemSize={100}
+              ItemSeparatorComponent={() => <View className="h-2" />}
+              contentContainerClassName="pb-4"
+              refreshing={refreshing}
+              onRefresh={refetch}
+            />
+          ) : (
+            <Text className="text-muted-foreground">No invitations</Text>
+          )}
+        </TabsContent>
+
+        <TabsContent value="users" className="flex-1">
+          <Text>Users</Text>
+        </TabsContent>
+      </Tabs>
     </View>
   );
 };
@@ -87,7 +106,11 @@ function RadioGroupItemWithLabel({
   return (
     <View className="flex-row items-center gap-2">
       <RadioGroupItem aria-labelledby={`label-for-${value}`} value={value} />
-      <Label nativeID={`label-for-${value}`} onPress={onLabelPress}>
+      <Label
+        nativeID={`label-for-${value}`}
+        onPress={onLabelPress}
+        className="font-mono text-sm text-foreground"
+      >
         {value.toUpperCase()}
       </Label>
     </View>
@@ -109,19 +132,20 @@ const InvitationCard = ({
 
   return (
     <View
-      className={`mb-2 rounded-lg border border-gray-200 bg-white p-4 ${
-        isDisabled ? "opacity-50" : ""
-      }`}
+      className={cn(
+        "rounded-lg border border-border bg-card p-4",
+        isDisabled && "opacity-50",
+      )}
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1">
-          <Text className="font-mono text-base font-medium text-gray-900">
+          <Text className="font-mono text-base font-medium text-foreground">
             {item.inviteCode}
           </Text>
-          <Text className="mt-1 text-sm capitalize text-gray-600">
+          <Text className="mt-1 font-mono text-sm text-muted-foreground">
             Role: {item.role}
           </Text>
-          <Text className="mt-1 text-xs capitalize text-gray-500">
+          <Text className="mt-1 font-mono text-xs text-muted-foreground">
             Status: {item.status}
           </Text>
         </View>
@@ -132,9 +156,13 @@ const InvitationCard = ({
               await Clipboard.setStringAsync(item.inviteCode);
               toast.success("Copied to clipboard");
             }}
-            className="rounded-full p-2 active:bg-gray-100"
+            className="rounded-full p-2 active:bg-muted"
           >
-            <AntDesign name="copy1" size={20} color="#4B5563" />
+            <AntDesign
+              name="copy1"
+              size={20}
+              color={THEME_COLORS.mutedForeground}
+            />
           </Pressable>
         ) : null}
       </View>

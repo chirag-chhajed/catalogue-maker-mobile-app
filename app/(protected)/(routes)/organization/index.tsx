@@ -1,6 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
-import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, Redirect } from "expo-router";
 import {
   View,
   ScrollView,
@@ -10,7 +9,6 @@ import {
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 
-import img from "~/assets/266.png";
 import { Badge } from "~/components/ui/badge";
 import {
   Card,
@@ -21,7 +19,7 @@ import {
 } from "~/components/ui/card";
 import { Text } from "~/components/ui/text";
 import { useGetApiV1OrganisationQuery } from "~/store/features/api/newApis";
-import { useOrganitionIdDispatch } from "~/store/hooks";
+import { useOrganitionIdDispatch, useUserState } from "~/store/hooks";
 
 const Index = () => {
   const {
@@ -31,12 +29,18 @@ const Index = () => {
   } = useGetApiV1OrganisationQuery();
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
+  const user = useUserState();
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center">
         <ActivityIndicator size="large" color="#96d0b0" />
       </View>
     );
+  }
+
+  if (user?.organizationId) {
+    return <Redirect href="/(protected)/(routes)/catalogue" />;
   }
 
   return (

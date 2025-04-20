@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 
+import { THEME_COLORS } from "~/lib/constants";
 import { hasPermission } from "~/lib/role";
 import { useUserState } from "~/store/hooks";
 
@@ -9,7 +10,18 @@ const SettingsLayout = () => {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#2e78b7",
+        tabBarActiveTintColor: THEME_COLORS.primary,
+        headerLeft: () => {
+          return (
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={THEME_COLORS.primary}
+              onPress={() => router.back()}
+              hitSlop={20}
+            />
+          );
+        },
       }}
     >
       <Tabs.Screen
