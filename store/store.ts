@@ -1,22 +1,21 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import { api } from "~/store/features/api";
+import { imageApi } from "~/store/features/api/imageApi";
 import { authSlice } from "~/store/features/hello";
 import { imageSlice } from "~/store/features/imageSlice";
 import { itemsSlice } from "~/store/features/itemsSlice";
+import { newSharableImageSlice } from "~/store/features/newSharableImageSlice";
 import { helloSlice } from "~/store/features/organizationId";
-import { sharableImageSlice } from "~/store/features/sharableImageSlice";
-import { newSharableImageSlice } from "./features/newSharableImageSlice";
-import { imageApi } from "./features/api/imageApi";
-
+import { shareTypeSlice } from "~/store/features/sharetype";
 export const store = configureStore({
   reducer: {
     hello: authSlice.reducer,
     orgId: helloSlice.reducer,
     image: imageSlice.reducer,
-    [sharableImageSlice.name]: sharableImageSlice.reducer,
     [itemsSlice.name]: itemsSlice.reducer,
     [newSharableImageSlice.name]: newSharableImageSlice.reducer,
+    [shareTypeSlice.name]: shareTypeSlice.reducer,
     [api.reducerPath]: api.reducer,
     [imageApi.reducerPath]: imageApi.reducer,
   },

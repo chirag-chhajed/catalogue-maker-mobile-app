@@ -1,11 +1,11 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { useAppSelector } from "../hooks";
-import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 
 type SharableImageGroup = {
   itemId: string;
   name: string;
+  catalogueId: string;
   description?: string;
   price: number;
   image: {
@@ -50,5 +50,13 @@ export const useGetBulkImages = () => {
     name: group.name,
     price: group.price,
     itemId: group.itemId,
+  }));
+};
+
+export const useGetBulkItems = () => {
+  const items = useAppSelector((state) => state.NewSharableImage);
+  return items.map((group) => ({
+    itemId: group.itemId,
+    catalogueId: group.catalogueId,
   }));
 };

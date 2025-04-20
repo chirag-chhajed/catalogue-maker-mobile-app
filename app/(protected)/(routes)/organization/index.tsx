@@ -42,21 +42,23 @@ const Index = () => {
   return (
     <View className="flex-1 p-4">
       {!organizationsExist ? (
-        <View className="flex-1 items-center justify-center">
-          <Image source={img} style={{ width: 200, height: 200 }} />
-          <Text className="mb-4 text-center text-gray-600">
-            You're not part of any organizations yet.
+        <View className="flex-1 items-center justify-center p-4">
+          <View className="mb-8 h-40 w-40 items-center justify-center rounded-full bg-primary/10">
+            <AntDesign name="team" size={64} color="#a4886b" />
+          </View>
+          <Text className="mb-2 text-xl font-bold text-foreground">
+            No Organizations Yet
           </Text>
-          {/* <Link className="mt-4" href={"/(protected)/organization/create-form"}> */}
-          <Pressable className=" rounded-md bg-blue-600 px-6 py-3">
-            <Link
-              href="/(protected)/(routes)/organization/create-form"
-              className="text-center font-semibold text-white"
-            >
-              Create Your First Organization
-            </Link>
-          </Pressable>
-          {/* </Link> */}
+          <Text className="mb-8 text-center text-muted-foreground">
+            Create your first organization to start collaborating with your team
+          </Text>
+          <Link href="/(protected)/(routes)/organization/create-form" asChild>
+            <Pressable className="w-full rounded-lg bg-primary px-6 py-3">
+              <Text className="text-center font-semibold text-primary-foreground">
+                Create Organization
+              </Text>
+            </Pressable>
+          </Link>
         </View>
       ) : (
         <ScrollView className="mb-4 flex-1">

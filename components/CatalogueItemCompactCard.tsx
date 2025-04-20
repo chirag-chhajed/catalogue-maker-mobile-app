@@ -73,11 +73,9 @@ const schema = z.object({
 
 export const CompactCard = ({
   item,
-  id,
   select,
 }: {
   item: CardItem;
-  id: string;
   select: boolean;
 }) => {
   const insets = useSafeAreaInsets();
@@ -98,6 +96,7 @@ export const CompactCard = ({
         addSharableImageGroup({
           itemId: item.itemId,
           name: item.name,
+          catalogueId: item.catalogueId,
           description: item.description,
           price: item.price,
           image: {
@@ -198,14 +197,9 @@ export const CompactCard = ({
 
       <View className="flex-1 p-3">
         <Link
-        // href={{
-        //   pathname: "/(protected)/(routes)/",
-        //   params: {
-        //     id,
-        //     title: item.name,
-        //     catalogueId: item.catalogueId,
-        //   },
-        // }}
+          href={{
+            pathname: "/(protected)/(routes)/catalogue/all",
+          }}
         >
           <CardTitle
             className="mb-1 text-base font-bold text-gray-900 underline"

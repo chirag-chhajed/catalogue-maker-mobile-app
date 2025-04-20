@@ -80,8 +80,9 @@ const Index = () => {
             </View>
           ))}
         </View>
-      ) : !cataloguesData?.pages?.length && !searchData?.items?.length ? (
-        <View className="flex-1 items-center justify-center space-y-4 p-4">
+      ) : !cataloguesData?.pages.flatMap((page) => page.items).length &&
+        !searchData?.items?.length ? (
+        <View className="flex-1 items-center justify-center gap-4 p-4">
           <View className="h-24 w-24 items-center justify-center rounded-full bg-primary/10">
             <AntDesign
               name="appstore1"
@@ -99,6 +100,9 @@ const Index = () => {
               </Text>
             </Pressable>
           </Link>
+          <Pressable onPress={() => refetchCatalogues()}>
+            <Text className="text-center text-muted-foreground">Refresh</Text>
+          </Pressable>
         </View>
       ) : (
         <View className="flex-1">

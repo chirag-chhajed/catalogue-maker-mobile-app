@@ -1,11 +1,15 @@
 import { Feather } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
 import { Pressable } from "react-native";
+import { Switch } from "~/components/ui/switch";
 
 import { Text } from "~/components/ui/text";
 import { THEME_COLORS } from "~/lib/constants";
+import { useShareType, useShareTypeDispatch } from "~/store/features/sharetype";
 
 const CatalogueLayout = () => {
+  const shareType = useShareType();
+  const { updateShareType } = useShareTypeDispatch();
   return (
     <Stack
       screenOptions={{
@@ -48,6 +52,9 @@ const CatalogueLayout = () => {
         name="share"
         options={{
           headerTitle: "Share",
+          headerRight: () => (
+            <Switch checked={shareType} onCheckedChange={updateShareType} />
+          ),
         }}
       />
       <Stack.Screen

@@ -24,9 +24,9 @@ import { Text } from "~/components/ui/text";
 import { THEME_COLORS } from "~/lib/constants";
 import { hasPermission } from "~/lib/role";
 import {
-  useDeleteCatalogMutation,
-  useUpdateCatalogMutation,
-} from "~/store/features/api/catalogueApi";
+  useDeleteApiV1CatalogueByCatalogueIdMutation,
+  usePutApiV1CatalogueByCatalogueIdMutation,
+} from "~/store/features/api/newApis";
 import { useUserState } from "~/store/hooks";
 
 type ImageType = {
@@ -179,9 +179,10 @@ const UpdateCatalogueForm = ({
 
 export const CompactCard = ({ item }: { item: CardItem }) => {
   const insets = useSafeAreaInsets();
-  const [deleteCatalog] = useDeleteCatalogMutation();
+  const [deleteCatalog] = useDeleteApiV1CatalogueByCatalogueIdMutation();
   const [open, setOpen] = useState(false);
-  const [updateCatalog, { isLoading }] = useUpdateCatalogMutation();
+  const [updateCatalog, { isLoading }] =
+    usePutApiV1CatalogueByCatalogueIdMutation();
   const { role } = useUserState();
   const contentInsets = {
     top: insets.top,
@@ -208,15 +209,21 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
         {
           text: "Delete",
           onPress: () => {
-            toast.promise(deleteCatalog({ id: item.catalogueId }).unwrap(), {
-              loading: "Deleting...",
-              success: () => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            toast.promise(
+              deleteCatalog({ catalogueId: item.catalogueId }).unwrap(),
+              {
+                loading: "Deleting...",
+                success: () => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-                return "Catalogue deleted successfully";
+                  return "Catalogue deleted successfully";
+                },
+                error: (error) => {
+                  console.log(error);
+                  return `${error?.data?.message ?? "Failed to delete catalogue"}`;
+                },
               },
-              error: "Failed to delete catalogue",
-            });
+            );
           },
           style: "destructive",
         },
@@ -226,17 +233,22 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
   };
 
   const handleSubmit = async (data: z.infer<typeof schema>) => {
-    // const hello = await updateCatalog({ ...data, id: item.id }).unwrap();
-    toast.promise(updateCatalog({ ...data, id: item.catalogueId }).unwrap(), {
-      success: (hello) => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setOpen(false);
+    toast.promise(
+      updateCatalog({
+        body: { ...data },
+        catalogueId: item.catalogueId,
+      }).unwrap(),
+      {
+        success: (hello) => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          setOpen(false);
 
-        return "Catalogue updated successfully";
+          return "Catalogue updated successfully";
+        },
+        error: "Faisled to update Catalogue",
+        loading: "Updating Catalogue...",
       },
-      error: "Faisled to update Catalogue",
-      loading: "Updating Catalogue...",
-    });
+    );
   };
 
   return (
@@ -319,7 +331,7 @@ export const CompactCard = ({ item }: { item: CardItem }) => {
         )}
 
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent className="bg-background p-0">
+          <DialogContent>
             <UpdateCatalogueForm
               item={item}
               isLoading={isLoading}

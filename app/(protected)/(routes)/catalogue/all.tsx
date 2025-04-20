@@ -99,7 +99,7 @@ const All = () => {
                   : data?.pages.flatMap((page) => page.items)
               }
               renderItem={({ item }) => (
-                <CompactCard id={item.catalogueId} item={item} select={false} />
+                <CompactCard item={item} select={false} />
               )}
               estimatedItemSize={385}
               ItemSeparatorComponent={() => <View className="h-2" />}

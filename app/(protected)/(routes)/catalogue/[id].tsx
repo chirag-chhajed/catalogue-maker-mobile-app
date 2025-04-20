@@ -3,18 +3,20 @@ import {
   type Config,
 } from "@baronha/react-native-multiple-image-picker";
 import { AntDesign } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetFlashList } from "@gorhom/bottom-sheet";
+import BottomSheet from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Image } from "expo-image";
+import * as Haptics from "expo-haptics";
 import { useLocalSearchParams, router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Dimensions } from "react-native";
+import { View, Pressable, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Share from "react-native-share";
 import { toast } from "sonner-native";
+import * as z from "zod";
 
 import { CompactCard } from "~/components/CatalogueItemCompactCard";
+import { BulkTransferSheet } from "~/components/bulk-transfer-sheet";
+import { BulkUpdateSheet } from "~/components/bulk-update-sheet";
 import { Input } from "~/components/ui/input";
 import { Skeleton } from "~/components/ui/skeleton";
 import { Text } from "~/components/ui/text";
@@ -22,15 +24,19 @@ import { THEME_COLORS } from "~/lib/constants";
 import {
   downloadImagesToCache,
   downloadImagesToGallery,
-  downloadInfoImagesToGallery,
 } from "~/lib/downloadImagesToCache";
+import { cn } from "~/lib/utils";
 import {
+  useDeleteApiV1CatalogueBulkDeleteItemsMutation,
   useGetApiV1CatalogueByCatalogueIdInfiniteQuery,
   useGetApiV1CatalogueSearchItemsByCatalogueIdQuery,
+  usePostApiV1CatalogueBulkTransferItemsMutation,
+  usePostApiV1CatalogueBulkUpdatePricesMutation,
 } from "~/store/features/api/newApis";
 import {
   useGetBulkImages,
   clearSharableImageGroups,
+  useGetBulkItems,
 } from "~/store/features/newSharableImageSlice";
 import { useAppDispatch, useDispatchImages } from "~/store/hooks";
 
@@ -83,17 +89,34 @@ const FilterChip = ({
 }) => (
   <Pressable
     onPress={onPress}
-    className={`flex-row items-center rounded-full px-4 py-2 ${
-      active ? "bg-primary" : "bg-secondary/50"
-    }`}
+    className={cn(
+      "flex-row items-center rounded-full px-4 py-2",
+      active ? "bg-primary" : "bg-secondary/50",
+    )}
   >
     <Text
-      className={active ? "text-primary-foreground" : "text-muted-foreground"}
+      className={cn(
+        "text-foreground",
+        active ? "text-primary-foreground" : "text-muted-foreground",
+      )}
     >
       {children}
     </Text>
   </Pressable>
 );
+
+const priceUpdateSchema = z.object({
+  mode: z.enum(["increase", "decrease"]),
+  type: z.enum(["percentage", "absolute"]),
+  value: z
+    .string()
+    .min(1, "Value is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Must be a positive number",
+    }),
+});
+
+type PriceUpdateForm = z.infer<typeof priceUpdateSchema>;
 
 export default function DetailsScreen() {
   const { id } = useLocalSearchParams();
@@ -101,10 +124,14 @@ export default function DetailsScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sort, setSort] = useState<"asc" | "desc" | null>("desc");
   const [priceSort, setPriceSort] = useState<"asc" | "desc" | null>(null);
+  const [bulkAction, setBulkAction] = useState<"transfer" | "price">("price");
   const debouncedSearchTerm = useDebounce(searchQuery, 500);
   const { setImages } = useDispatchImages();
   const images = useGetBulkImages();
-
+  const items = useGetBulkItems();
+  const [updatePrices] = usePostApiV1CatalogueBulkUpdatePricesMutation();
+  const [deleteItems] = useDeleteApiV1CatalogueBulkDeleteItemsMutation();
+  const [transferItems] = usePostApiV1CatalogueBulkTransferItemsMutation();
   const {
     data,
     isLoading,
@@ -142,11 +169,62 @@ export default function DetailsScreen() {
   };
   const [selectionMode, setSelectionMode] = useState(false);
 
-  const [addInfoToImages, setAddInfoToImages] = useState(false);
-  const [processedImages, setProcessedImages] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<
     "newest" | "oldest" | "expensive" | "cheapest"
   >("newest");
+
+  const onCopyToCatalogue = (data: PriceUpdateForm) => {
+    toast.promise(
+      updatePrices({
+        body: {
+          items,
+          operation: "clone",
+          direction: data.mode,
+          mode: data.type,
+          value: Number(data.value),
+        },
+      }).unwrap(),
+      {
+        loading: "Cloning...",
+        success: (result) => {
+          console.log(result);
+          sheetRef.current?.close();
+          setSelectionMode(false);
+          return "Cloned";
+        },
+        error: (error) => {
+          console.log(error);
+          return "Error";
+        },
+      },
+    );
+  };
+
+  const onUpdateExisting = (data: PriceUpdateForm) => {
+    toast.promise(
+      updatePrices({
+        body: {
+          items,
+          operation: "update",
+          direction: data.mode,
+          mode: data.type,
+          value: Number(data.value),
+        },
+      }).unwrap(),
+      {
+        loading: "Updating...",
+        success: (result) => {
+          sheetRef.current?.close();
+          setSelectionMode(false);
+          return "Updated";
+        },
+        error: (error) => {
+          console.log(error);
+          return "Error";
+        },
+      },
+    );
+  };
 
   useEffect(() => {
     if (!selectionMode) {
@@ -158,6 +236,7 @@ export default function DetailsScreen() {
     try {
       const result = await openPicker(config);
       setImages(
+        // @ts-ignore
         result.map((res) => ({
           uri: `file://${res.realPath}`,
           type: res.mime,
@@ -165,66 +244,21 @@ export default function DetailsScreen() {
         })),
       );
       router.push(`/(protected)/(routes)/catalogue/create-item-form?id=${id}`);
-    } catch (error) {
+    } catch {
       toast.error("Some Error occured");
     }
   };
   const sheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["55%"], []);
+  const snapPoints = useMemo(() => [400], []);
 
   // callbacks
-  const handleSnapPress = useCallback((index: number) => {
-    sheetRef.current?.snapToIndex(index);
+  const handleSnapPress = useCallback(() => {
+    if (sheetRef.current) {
+      sheetRef.current.snapToIndex(0);
+    } else {
+      console.log("No sheet ref");
+    }
   }, []);
-
-  const { width } = Dimensions.get("window");
-  // Modify the handleShare function
-  const handleShare = async () => {
-    try {
-      if (!checkedImages?.length) return;
-
-      if (addInfoToImages) {
-        // Get full item info for checked images
-        await Share.open({
-          urls: processedImages,
-        });
-      }
-      const cachedImages = await downloadImagesToCache(
-        checkedImages.map((image) => image.imageUrl),
-      );
-      await Share.open({
-        urls: cachedImages,
-      });
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to share images");
-    }
-  };
-
-  // Modify the WhatsApp share handler similarly
-  const handleWhatsAppShare = async () => {
-    try {
-      if (!checkedImages?.length) return;
-
-      if (addInfoToImages) {
-        await Share.shareSingle({
-          urls: processedImages,
-          social: Share.Social.WHATSAPP,
-        });
-      }
-      const cachedImages = await downloadImagesToCache(
-        checkedImages.map((img) => img.imageUrl),
-      );
-
-      await Share.shareSingle({
-        urls: cachedImages,
-        social: Share.Social.WHATSAPP,
-      });
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to share on WhatsApp");
-    }
-  };
 
   type FilterType = "newest" | "oldest" | "expensive" | "cheapest";
   const handleFilterChange = (filter: FilterType) => {
@@ -249,6 +283,60 @@ export default function DetailsScreen() {
     }
   };
 
+  const handleDeleteItems = () => {
+    Alert.alert(
+      "Delete Items",
+      "Are you sure you want to delete these items?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          onPress: () => {
+            toast.promise(
+              deleteItems({
+                body: {
+                  items,
+                },
+              }).unwrap(),
+              {
+                loading: "Deleting",
+                success: (result) => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setSelectionMode(false);
+                  return "Deleted";
+                },
+                error: (error) => {
+                  return "Error";
+                },
+              },
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  const handleTransferItems = (selected: "transfer" | "clone") => {
+    toast.promise(
+      transferItems({
+        body: {
+          items: items,
+          operation: selected,
+        },
+      }).unwrap(),
+      {
+        loading: `${selected === "transfer" ? "Transferring" : "Cloning"}`,
+        success: (result) => {
+          setSelectionMode(false);
+          return `${selected === "transfer" ? "Transferred" : "Cloned"} Successfully`;
+        },
+        error: () => {
+          return `${selected === "transfer" ? "Transfer" : "Clone"} Failed`;
+        },
+      },
+    );
+  };
+
   return (
     <View className="flex-1">
       {isLoading ? (
@@ -261,7 +349,7 @@ export default function DetailsScreen() {
         </View>
       ) : !data?.pages.flatMap((page) => page.items).length &&
         !searchData?.items?.length ? (
-        <View className="flex-1 items-center justify-center space-y-4 p-4">
+        <View className="flex-1 items-center justify-center gap-4 p-4">
           <View className="h-24 w-24 items-center justify-center rounded-full bg-primary/10">
             <AntDesign name="inbox" size={40} color={THEME_COLORS.primary} />
           </View>
@@ -277,6 +365,9 @@ export default function DetailsScreen() {
               size={24}
               color={THEME_COLORS.primaryForeground}
             />
+          </Pressable>
+          <Pressable onPress={() => refetch()}>
+            <Text className="text-center text-muted-foreground">Refresh</Text>
           </Pressable>
         </View>
       ) : (
@@ -350,6 +441,47 @@ export default function DetailsScreen() {
                   {selectionMode ? "Cancel Selection" : "Select Items"}
                 </Text>
               </Pressable>
+
+              {/* Bulk Action Buttons */}
+              {images.length > 0 && (
+                <View className="mt-3 flex-row gap-2">
+                  <Pressable
+                    onPress={handleDeleteItems}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-full bg-destructive px-4 py-2"
+                  >
+                    <AntDesign name="delete" size={16} color="white" />
+                    <Text className="text-primary-foreground">
+                      Delete ({images.length})
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setBulkAction("transfer");
+                      handleSnapPress();
+                    }}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-full bg-primary px-4 py-2"
+                  >
+                    <AntDesign name="swap" size={16} color="white" />
+                    <Text className="text-primary-foreground">Transfer</Text>
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => {
+                      setBulkAction("price");
+                      handleSnapPress();
+                    }}
+                    className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary/90 px-4 py-3 shadow-sm active:opacity-90"
+                  >
+                    <View className="flex-row items-center gap-2">
+                      <AntDesign name="edit" size={18} color="white" />
+                      <Text className="font-medium text-primary-foreground">
+                        Price
+                      </Text>
+                    </View>
+                  </Pressable>
+                </View>
+              )}
             </View>
           </View>
 
@@ -405,6 +537,21 @@ export default function DetailsScreen() {
           ) : null}
         </View>
       )}
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        index={-1}
+      >
+        {bulkAction === "price" ? (
+          <BulkUpdateSheet
+            onCopyToCatalogue={onCopyToCatalogue}
+            onUpdateExisting={onUpdateExisting}
+          />
+        ) : (
+          <BulkTransferSheet onPress={handleTransferItems} />
+        )}
+      </BottomSheet>
     </View>
   );
 }
