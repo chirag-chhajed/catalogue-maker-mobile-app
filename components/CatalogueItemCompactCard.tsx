@@ -202,6 +202,7 @@ export const CompactCard = ({
             params: {
               catalogueId: item.catalogueId,
               itemId: item.itemId,
+              title: item.name,
             },
           }}
         >

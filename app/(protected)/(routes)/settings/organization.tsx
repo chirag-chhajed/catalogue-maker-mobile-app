@@ -22,7 +22,6 @@ const Organization = () => {
   const organizationsExist = (organizations?.length ?? 0) > 0;
   const { changeOrganizationId } = useOrganitionIdDispatch();
   const user = useUserState();
-  console.log(organizations);
   return (
     <View className="flex-1 bg-background">
       {!organizationsExist ? (

@@ -48,6 +48,7 @@ const Index = () => {
   const {
     data: cataloguesData,
     isLoading: isCataloguesLoading,
+    isFetching,
     refetch: refetchCatalogues,
     hasNextPage,
     fetchNextPage,
@@ -171,11 +172,9 @@ const Index = () => {
               onRefresh={
                 searchQuery.length > 0 ? refetchSearch : refetchCatalogues
               }
-              refreshing={
-                searchQuery.length > 0 ? isSearchLoading : isCataloguesLoading
-              }
+              refreshing={searchQuery.length > 0 ? isSearchLoading : isFetching}
               renderItem={({ item }) => (
-                <CompactCard item={item} sortDir={sort} />
+                <CompactCard item={item} key={item.catalogueId} />
               )}
               onEndReached={() => {
                 if (!searchQuery.length && hasNextPage && !isFetchingNextPage) {
@@ -190,6 +189,7 @@ const Index = () => {
                   </View>
                 ) : null
               }
+              keyExtractor={(item) => item.catalogueId}
             />
           </View>
 

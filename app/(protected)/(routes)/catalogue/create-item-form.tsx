@@ -46,6 +46,7 @@ export default function CreateItemForm() {
   const images = useGetImages();
   const handleSubmit = async (data: z.infer<typeof schema>) => {
     const formData = new FormData();
+
     if (images[0]) {
       formData.append("file", {
         uri: images[0].uri,

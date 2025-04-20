@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AntDesign, Ionicons } from "@expo/vector-icons";
 import { router, Tabs } from "expo-router";
 
 import { THEME_COLORS } from "~/lib/constants";
@@ -19,6 +19,7 @@ const SettingsLayout = () => {
               color={THEME_COLORS.primary}
               onPress={() => router.back()}
               hitSlop={20}
+              style={{ marginHorizontal: 20 }}
             />
           );
         },
@@ -29,7 +30,7 @@ const SettingsLayout = () => {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="person-sharp" size={24} color={color} />
+            <AntDesign name="user" size={24} color={color} />
           ),
         }}
       />
@@ -38,7 +39,7 @@ const SettingsLayout = () => {
         options={{
           title: "Organization",
           tabBarIcon: ({ color }) => (
-            <Ionicons name="business-sharp" size={24} color={color} />
+            <AntDesign name="appstore-o" size={24} color={color} />
           ),
         }}
       />
@@ -48,7 +49,7 @@ const SettingsLayout = () => {
           options={{
             title: "Invitations",
             tabBarIcon: ({ color }) => (
-              <Ionicons name="mail-outline" size={24} color={color} />
+              <AntDesign name="mail" size={24} color={color} />
             ),
           }}
         />

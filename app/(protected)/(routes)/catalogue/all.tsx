@@ -77,6 +77,7 @@ const All = () => {
   const items = useGetBulkItems();
   const {
     data,
+    isFetching,
     isLoading,
     refetch,
     hasNextPage,
@@ -398,7 +399,7 @@ const All = () => {
               ItemSeparatorComponent={() => <View className="h-2" />}
               showsVerticalScrollIndicator={false}
               onRefresh={searchQuery.length > 0 ? refetchSearch : refetch}
-              refreshing={searchQuery.length > 0 ? isSearchLoading : isLoading}
+              refreshing={searchQuery.length > 0 ? isSearchLoading : isFetching}
               onEndReached={() => {
                 if (!searchQuery.length && hasNextPage && !isFetchingNextPage) {
                   fetchNextPage();

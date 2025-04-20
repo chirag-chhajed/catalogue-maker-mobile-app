@@ -49,6 +49,12 @@ const CatalogueLayout = () => {
         })}
       />
       <Stack.Screen
+        name="[catalogueId.itemId]"
+        options={({ route }) => ({
+          headerTitle: route.params?.title ?? "Item",
+        })}
+      />
+      <Stack.Screen
         name="share"
         options={{
           headerTitle: "Share",

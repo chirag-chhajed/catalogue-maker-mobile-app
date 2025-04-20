@@ -495,6 +495,7 @@ export default function DetailsScreen() {
                   fetchNextPage();
                 }
               }}
+              keyExtractor={(item) => item.itemId}
             />
           </View>
 
