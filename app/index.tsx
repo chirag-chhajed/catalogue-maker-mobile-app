@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { LinearGradient } from "expo-linear-gradient";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect, useRouter, router } from "expo-router";
 import { useState } from "react";
 import { FormProvider, useForm, Controller } from "react-hook-form";
 import { TextInput, View, Pressable } from "react-native";
@@ -14,12 +14,7 @@ import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
 import { usePostApiV1AuthLoginMutation } from "~/store/features/api/newApis";
-import { changeAccessToken } from "~/store/features/hello";
-import {
-  useAppDispatch,
-  useAppSelector,
-  useOrganizationIdSelector,
-} from "~/store/hooks";
+import { useAppSelector, useOrganizationIdSelector } from "~/store/hooks";
 
 GoogleSignin.configure({
   webClientId: process.env.EXPO_PUBLIC_CLIENT_ID,
@@ -91,7 +86,6 @@ const LoginForm = () => {
             </View>
           )}
         />
-
         <Controller
           control={form.control}
           name="password"
@@ -113,6 +107,14 @@ const LoginForm = () => {
           )}
         />
 
+        <Pressable
+          onPress={() => router.push("/forget-password")}
+          className="self-end"
+        >
+          <Text className="font-mono text-sm text-primary">
+            Forgot Password?
+          </Text>
+        </Pressable>
         <Button
           onPress={form.handleSubmit(onSubmit)}
           className="w-full rounded-lg bg-primary py-3"
@@ -235,7 +237,6 @@ const SignupForm = () => {
 
 export default function App() {
   const [isLogin, setIsLogin] = useState(true);
-  const dispatch = useAppDispatch();
   async function onGoogleButtonPress() {
     // Check if your device supports Google Play
     await GoogleSignin.signOut();
@@ -313,10 +314,6 @@ export default function App() {
                       idToken: idToken ?? "",
                     },
                   }).unwrap();
-
-                  dispatch(
-                    changeAccessToken({ accessToken: data.accessToken }),
-                  );
                   router.replace("/(protected)/(routes)/organization");
                 } catch (error) {
                   console.log(error);

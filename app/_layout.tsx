@@ -1,6 +1,7 @@
 import "../global.css";
 
 import { PortalHost } from "@rn-primitives/portal";
+import { Image } from "expo-image";
 import { Stack } from "expo-router";
 // import { PostHogProvider } from "posthog-react-native";
 import * as SplashScreen from "expo-splash-screen";
@@ -9,11 +10,10 @@ import { View, useWindowDimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Toaster } from "sonner-native";
 
+import splashScreenImg from "~/assets/splash.png";
 import AuthProvider from "~/components/AuthProvider";
 import { ReduxProvider } from "~/store/provider";
 import "../ReactotronConfig";
-import { Image } from "expo-image";
-import splashScreenImg from "~/assets/splash.png";
 
 SplashScreen.hide();
 
@@ -54,6 +54,12 @@ export default function Layout() {
           <Stack>
             <Stack.Screen
               name="index"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="forget-password"
               options={{
                 headerShown: false,
               }}
