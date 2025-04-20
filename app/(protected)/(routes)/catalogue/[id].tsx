@@ -131,6 +131,7 @@ export default function DetailsScreen() {
     data,
     isLoading,
     refetch,
+    isFetching,
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
@@ -489,7 +490,7 @@ export default function DetailsScreen() {
               ItemSeparatorComponent={() => <View className="h-2" />}
               showsVerticalScrollIndicator={false}
               onRefresh={searchQuery.length > 0 ? refetchSearch : refetch}
-              refreshing={searchQuery.length > 0 ? isSearchLoading : isLoading}
+              refreshing={searchQuery.length > 0 ? isSearchLoading : isFetching}
               onEndReached={() => {
                 if (!searchQuery.length && hasNextPage && !isFetchingNextPage) {
                   fetchNextPage();
