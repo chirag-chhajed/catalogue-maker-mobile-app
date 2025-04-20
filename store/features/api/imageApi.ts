@@ -1,5 +1,6 @@
 import { createApi, fakeBaseQuery } from "@reduxjs/toolkit/query/react";
 import { Image } from "react-native";
+
 import { downloadImagesToCache } from "~/lib/downloadImagesToCache";
 
 type ImageWithDetails = {
@@ -8,7 +9,6 @@ type ImageWithDetails = {
   price: number;
   itemId: string;
 };
-
 
 export const imageApi = createApi({
   reducerPath: "imageApi",
@@ -48,7 +48,7 @@ export const imageApi = createApi({
           return { error: error as Error };
         }
       },
-    })
+    }),
   }),
 });
 

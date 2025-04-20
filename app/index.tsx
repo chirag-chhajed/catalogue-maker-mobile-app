@@ -1,10 +1,15 @@
+import { AntDesign } from "@expo/vector-icons";
+import { zodResolver } from "@hookform/resolvers/zod";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect, useRouter } from "expo-router";
-import { View } from "react-native";
+import { useState } from "react";
+import { FormProvider, useForm, Controller } from "react-hook-form";
+import { TextInput, View, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AntDesign } from "@expo/vector-icons";
+import { toast } from "sonner-native";
+import { z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
@@ -21,12 +26,222 @@ GoogleSignin.configure({
   scopes: ["profile", "email"],
 });
 
+const loginSchema = z.object({
+  email: z.string().trim().email("Invalid email address"),
+  password: z.string().trim().min(6, "Password must be at least 6 characters"),
+});
+
+const signupSchema = z.object({
+  name: z.string().trim().min(1, "Name is required"),
+  email: z.string().trim().email("Invalid email address"),
+  password: z.string().trim().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+type SignupFormData = z.infer<typeof signupSchema>;
+
+const LoginForm = () => {
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (data: LoginFormData) => {
+    console.log(data);
+    toast.promise(
+      auth().signInWithEmailAndPassword(data.email, data.password),
+      {
+        loading: "Logging in...",
+        success: (data) => {
+          console.log(data);
+          return "Logged in";
+        },
+        error: (error) => {
+          console.log(error);
+          return "Failed to log in";
+        },
+      },
+    );
+  };
+
+  return (
+    <FormProvider {...form}>
+      <View className="w-full gap-4">
+        <Controller
+          control={form.control}
+          name="email"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Email"
+                value={value}
+                onChangeText={onChange}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={form.control}
+          name="password"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Password"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Button
+          onPress={form.handleSubmit(onSubmit)}
+          className="w-full rounded-lg bg-primary py-3"
+        >
+          <Text className="font-mono font-semibold text-primary-foreground">
+            Login
+          </Text>
+        </Button>
+      </View>
+    </FormProvider>
+  );
+};
+
+const SignupForm = () => {
+  const form = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (data: SignupFormData) => {
+    console.log(data);
+    toast.promise(
+      auth().createUserWithEmailAndPassword(data.email, data.password),
+      {
+        loading: "Signing up...",
+        success: (data) => {
+          console.log(data);
+          return "Signed up";
+        },
+        error: (error) => {
+          console.log(error);
+          return "Failed to sign up";
+        },
+      },
+    );
+  };
+
+  return (
+    <FormProvider {...form}>
+      <View className="w-full gap-4">
+        <Controller
+          control={form.control}
+          name="name"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Name"
+                value={value}
+                onChangeText={onChange}
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={form.control}
+          name="email"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Email"
+                value={value}
+                onChangeText={onChange}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={form.control}
+          name="password"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Password"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
+
+        <Button
+          onPress={form.handleSubmit(onSubmit)}
+          className="w-full rounded-lg bg-primary py-3"
+        >
+          <Text className="font-mono font-semibold text-primary-foreground">
+            Sign Up
+          </Text>
+        </Button>
+      </View>
+    </FormProvider>
+  );
+};
+
 export default function App() {
+  const [isLogin, setIsLogin] = useState(true);
   const dispatch = useAppDispatch();
   async function onGoogleButtonPress() {
     // Check if your device supports Google Play
     await GoogleSignin.signOut();
-    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    await GoogleSignin.hasPlayServices({
+      showPlayServicesUpdateDialog: true,
+    });
     // Get the users ID token
     const googleSignInResult = await GoogleSignin.signIn();
 
@@ -57,36 +272,67 @@ export default function App() {
         style={{ flex: 1 }}
       >
         <View className="flex-1 items-center justify-center p-8">
-          <Button
-            disabled={isLoading}
-            onPress={async () => {
-              try {
-                const { user } = await onGoogleButtonPress();
-                const idToken = await user.getIdToken();
-                const data = await login({
-                  body: {
-                    email: user.email,
-                    name: user.displayName ?? "aefiowneo",
-                    idToken: idToken ?? "",
-                  },
-                }).unwrap();
+          <View className="w-full max-w-sm gap-8">
+            {/* Form Container */}
+            <View className="rounded-xl bg-background/80 p-6 backdrop-blur-sm">
+              <Text className="mb-6 text-center font-mono text-2xl font-bold text-foreground">
+                {isLogin ? "Login" : "Sign Up"}
+              </Text>
 
-                dispatch(changeAccessToken({ accessToken: data.accessToken }));
-                router.replace("/(protected)/(routes)/organization");
-              } catch (error) {
-                console.log(error);
-              } finally {
-                await GoogleSignin.signOut();
-              }
-            }}
-            size={"lg"}
-            className="flex-row items-center justify-center gap-3 rounded-xl "
-          >
-            <AntDesign name="google" size={24} color="white" />
-            <Text className="text-lg font-semibold text-white">
-              Sign in with Google
-            </Text>
-          </Button>
+              {isLogin ? <LoginForm /> : <SignupForm />}
+
+              <Pressable onPress={() => setIsLogin(!isLogin)} className="mt-4">
+                <Text className="text-center font-mono text-sm text-primary">
+                  {isLogin
+                    ? "Need an account? Sign up"
+                    : "Already have an account? Login"}
+                </Text>
+              </Pressable>
+            </View>
+
+            {/* Divider */}
+            <View className="flex-row items-center">
+              <View className="h-[1px] flex-1 bg-border" />
+              <Text className="mx-4 font-mono text-sm text-muted-foreground">
+                OR
+              </Text>
+              <View className="h-[1px] flex-1 bg-border" />
+            </View>
+
+            {/* Google Button */}
+            <Button
+              disabled={isLoading}
+              onPress={async () => {
+                try {
+                  const { user } = await onGoogleButtonPress();
+                  const idToken = await user.getIdToken();
+                  const data = await login({
+                    body: {
+                      email: user.email,
+                      name: user.displayName ?? "aefiowneo",
+                      idToken: idToken ?? "",
+                    },
+                  }).unwrap();
+
+                  dispatch(
+                    changeAccessToken({ accessToken: data.accessToken }),
+                  );
+                  router.replace("/(protected)/(routes)/organization");
+                } catch (error) {
+                  console.log(error);
+                } finally {
+                  await GoogleSignin.signOut();
+                }
+              }}
+              size="lg"
+              className="flex-row items-center justify-center gap-3 rounded-xl"
+            >
+              <AntDesign name="google" size={24} color="white" />
+              <Text className="text-lg font-semibold text-white">
+                Sign in with Google
+              </Text>
+            </Button>
+          </View>
         </View>
       </LinearGradient>
     </SafeAreaView>

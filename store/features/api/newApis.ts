@@ -19,7 +19,7 @@ const newApis = api.injectEndpoints({
           dispatch(
             changeState({ accessToken: data.accessToken, user: data.user }),
           );
-        } catch (error) { }
+        } catch (error) {}
       },
     }),
     getApiV1AuthRefresh: build.query<
@@ -39,7 +39,7 @@ const newApis = api.injectEndpoints({
           dispatch(
             changeState({ accessToken: data.accessToken, user: data.user }),
           );
-        } catch (error) { }
+        } catch (error) {}
       },
     }),
     postApiV1AuthLogout: build.mutation<
@@ -63,7 +63,7 @@ const newApis = api.injectEndpoints({
       GetApiV1InvitationApiArg
     >({
       query: () => ({ url: `/api/v1/invitation` }),
-      providesTags: ['Invitation']
+      providesTags: ["Invitation"],
     }),
     postApiV1InvitationAccept: build.mutation<
       PostApiV1InvitationAcceptApiResponse,
@@ -74,7 +74,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Invitation', 'Organization']
+      invalidatesTags: ["Invitation", "Organization"],
     }),
     postApiV1Invitation: build.mutation<
       PostApiV1InvitationApiResponse,
@@ -85,14 +85,14 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Invitation']
+      invalidatesTags: ["Invitation"],
     }),
     getApiV1Organisation: build.query<
       GetApiV1OrganisationApiResponse,
       GetApiV1OrganisationApiArg
     >({
       query: () => ({ url: `/api/v1/organisation` }),
-      providesTags: ['Organization']
+      providesTags: ["Organization"],
     }),
     postApiV1Organisation: build.mutation<
       PostApiV1OrganisationApiResponse,
@@ -103,14 +103,14 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Organization']
+      invalidatesTags: ["Organization"],
     }),
     getApiV1OrganisationUsers: build.query<
       GetApiV1OrganisationUsersApiResponse,
       void
     >({
       query: () => ({ url: `/api/v1/organisation/users` }),
-      providesTags: ['Organization']
+      providesTags: ["Organization"],
     }),
     deleteApiV1OrganisationRemoveUserByUserId: build.mutation<
       DeleteApiV1OrganisationRemoveUserByUserIdApiResponse,
@@ -120,7 +120,7 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/organisation/remove-user/${queryArg.userId}`,
         method: "DELETE",
       }),
-      invalidatesTags: ['Organization']
+      invalidatesTags: ["Organization"],
     }),
     postApiV1Catalogue: build.mutation<
       PostApiV1CatalogueApiResponse,
@@ -131,7 +131,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: [{ type: 'Catalogue', id: 'LIST' }]
+      invalidatesTags: [{ type: "Catalogue", id: "LIST" }],
     }),
     getApiV1Catalogue: build.infiniteQuery<
       GetApiV1CatalogueApiResponse,
@@ -155,10 +155,13 @@ const newApis = api.injectEndpoints({
       providesTags: (result) =>
         result?.items
           ? [
-            ...result.items.map(({ catalogueId }) => ({ type: 'Catalogue' as const, id: catalogueId })),
-            { type: 'Catalogue' as const, id: 'LIST' }
-          ]
-          : [{ type: 'Catalogue', id: 'LIST' }]
+              ...result.items.map(({ catalogueId }) => ({
+                type: "Catalogue" as const,
+                id: catalogueId,
+              })),
+              { type: "Catalogue" as const, id: "LIST" },
+            ]
+          : [{ type: "Catalogue", id: "LIST" }],
     }),
     postApiV1CatalogueByCatalogueId: build.mutation<
       PostApiV1CatalogueByCatalogueIdApiResponse,
@@ -174,7 +177,9 @@ const newApis = api.injectEndpoints({
           price: queryArg.price,
         },
       }),
-      invalidatesTags: (result, error, arg) => [{ type: 'Catalogue', id: arg.catalogueId }]
+      invalidatesTags: (result, error, arg) => [
+        { type: "Catalogue", id: arg.catalogueId },
+      ],
     }),
     getApiV1CatalogueByCatalogueId: build.infiniteQuery<
       GetApiV1CatalogueByCatalogueIdApiResponse,
@@ -197,9 +202,9 @@ const newApis = api.injectEndpoints({
         },
       },
       providesTags: (result, error, arg) => [
-        { type: 'Catalogue', id: arg.catalogueId },
-        { type: 'Item', id: 'LIST' }
-      ]
+        { type: "Catalogue", id: arg.catalogueId },
+        { type: "Item", id: "LIST" },
+      ],
     }),
     putApiV1CatalogueByCatalogueId: build.mutation<
       PutApiV1CatalogueByCatalogueIdApiResponse,
@@ -210,7 +215,9 @@ const newApis = api.injectEndpoints({
         method: "PUT",
         body: queryArg.body,
       }),
-      invalidatesTags: (result, error, arg) => [{ type: 'Catalogue', id: arg.catalogueId }]
+      invalidatesTags: (result, error, arg) => [
+        { type: "Catalogue", id: arg.catalogueId },
+      ],
     }),
     deleteApiV1CatalogueByCatalogueId: build.mutation<
       DeleteApiV1CatalogueByCatalogueIdApiResponse,
@@ -221,9 +228,9 @@ const newApis = api.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: 'Catalogue', id: arg.catalogueId },
-        { type: 'Catalogue', id: 'LIST' }
-      ]
+        { type: "Catalogue", id: arg.catalogueId },
+        { type: "Catalogue", id: "LIST" },
+      ],
     }),
     getApiV1CatalogueByCatalogueIdAndItemId: build.query<
       GetApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -233,9 +240,9 @@ const newApis = api.injectEndpoints({
         url: `/api/v1/catalogue/${queryArg.catalogueId}/${queryArg.itemId}`,
       }),
       providesTags: (result, error, arg) => [
-        { type: 'Item', id: arg.itemId },
-        { type: 'Catalogue', id: arg.catalogueId }
-      ]
+        { type: "Item", id: arg.itemId },
+        { type: "Catalogue", id: arg.catalogueId },
+      ],
     }),
     getApiV1CatalogueAll: build.infiniteQuery<
       GetApiV1CatalogueAllApiResponse,
@@ -267,7 +274,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Item', 'Catalogue']
+      invalidatesTags: ["Item", "Catalogue"],
     }),
     postApiV1CatalogueBulkTransferItems: build.mutation<
       PostApiV1CatalogueBulkTransferItemsApiResponse,
@@ -278,7 +285,7 @@ const newApis = api.injectEndpoints({
         method: "POST",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Item', 'Catalogue']
+      invalidatesTags: ["Item", "Catalogue"],
     }),
     deleteApiV1CatalogueBulkDeleteItems: build.mutation<
       DeleteApiV1CatalogueBulkDeleteItemsApiResponse,
@@ -289,7 +296,7 @@ const newApis = api.injectEndpoints({
         method: "DELETE",
         body: queryArg.body,
       }),
-      invalidatesTags: ['Item', 'Catalogue']
+      invalidatesTags: ["Item", "Catalogue"],
     }),
     putApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
       PutApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -301,9 +308,9 @@ const newApis = api.injectEndpoints({
         body: queryArg.body,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: 'Item', id: arg.itemId },
-        { type: 'Item', id: 'LIST' }
-      ]
+        { type: "Item", id: arg.itemId },
+        { type: "Item", id: "LIST" },
+      ],
     }),
     deleteApiV1CatalogueByCatalogueIdAndItemId: build.mutation<
       DeleteApiV1CatalogueByCatalogueIdAndItemIdApiResponse,
@@ -314,9 +321,9 @@ const newApis = api.injectEndpoints({
         method: "DELETE",
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: 'Item', id: arg.itemId },
-        { type: 'Item', id: 'LIST' }
-      ]
+        { type: "Item", id: arg.itemId },
+        { type: "Item", id: "LIST" },
+      ],
     }),
     getApiV1CatalogueSearchItemsByCatalogueId: build.query<
       GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse,
@@ -358,17 +365,17 @@ export { newApis };
 export type PostApiV1AuthLoginApiResponse =
   /** status 200 Successful login response */
   | {
-    accessToken: string;
-    user: {
-      id: string;
-      name: string | null;
-      email: string;
-    };
-  }
+      accessToken: string;
+      user: {
+        id: string;
+        name: string | null;
+        email: string;
+      };
+    }
   | /** status 204 User already exists */ {
-    success: false;
-    message: string;
-  };
+      success: false;
+      message: string;
+    };
 export type PostApiV1AuthLoginApiArg = {
   body: {
     name: string;
@@ -378,34 +385,34 @@ export type PostApiV1AuthLoginApiArg = {
 };
 export type GetApiV1AuthRefreshApiResponse =
   /** status 200 Token refresh successful */ {
-  accessToken: string;
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
+    accessToken: string;
+    user: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
   };
-};
 export type GetApiV1AuthRefreshApiArg = {
   organizationId?: string;
 };
 export type PostApiV1AuthLogoutApiResponse =
   /** status 200 Successfully logged out */ {
-  success: boolean;
-  message: string;
-};
+    success: boolean;
+    message: string;
+  };
 export type PostApiV1AuthLogoutApiArg = void;
 export type GetApiV1OrganisationApiResponse =
   /** status 200 Organisation details */ {
-  orgId: string;
-  name: string;
-  description?: string;
-  role: string;
-}[];
+    orgId: string;
+    name: string;
+    description?: string;
+    role: string;
+  }[];
 export type GetApiV1OrganisationApiArg = void;
 export type PostApiV1OrganisationApiResponse =
   /** status 201 Organisation created successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PostApiV1OrganisationApiArg = {
   body: {
     name: string;
@@ -418,14 +425,14 @@ export type DeleteApiV1OrganisationRemoveUserByUserIdApiArg = {
 };
 export type PostApiV1CatalogueApiResponse =
   /** status 201 Catalogue created successfully */ {
-  catalogueId: string;
-  orgId: string;
-  name: string;
-  description?: string;
-  createdBy: string;
-  createdAt: number;
-  updatedAt: number;
-};
+    catalogueId: string;
+    orgId: string;
+    name: string;
+    description?: string;
+    createdBy: string;
+    createdAt: number;
+    updatedAt: number;
+  };
 export type PostApiV1CatalogueApiArg = {
   body: {
     name: string;
@@ -434,33 +441,33 @@ export type PostApiV1CatalogueApiArg = {
 };
 export type GetApiV1CatalogueApiResponse =
   /** status 200 List of catalogues retrieved successfully */ {
-  items: {
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    createdBy: string;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    images: {
-      imageUrl: string;
-      blurhash?: string;
-      imageId: string;
+    items: {
       catalogueId: string;
-      itemId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      createdBy: string;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      images: {
+        imageUrl: string;
+        blurhash?: string;
+        imageId: string;
+        catalogueId: string;
+        itemId: string;
+      }[];
     }[];
-  }[];
-  nextCursor: string | null;
-};
+    nextCursor: string | null;
+  };
 export type GetApiV1CatalogueApiArg = {
   cursor?: string;
   order?: "asc" | "desc";
 };
 export type PostApiV1CatalogueByCatalogueIdApiResponse =
   /** status 201 Catalogue item created successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PostApiV1CatalogueByCatalogueIdApiArg = {
   catalogueId: string;
   name: string;
@@ -470,25 +477,25 @@ export type PostApiV1CatalogueByCatalogueIdApiArg = {
 };
 export type GetApiV1CatalogueByCatalogueIdApiResponse =
   /** status 200 Catalogue items retrieved successfully */ {
-  items: {
-    itemId: string;
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    price: number;
-    metadata?: unknown | null;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    image: {
-      imageUrl: string;
-      blurhash?: string;
-      uploadedAt?: number;
-    };
-  }[];
-  nextCursor: string | null;
-};
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: unknown | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+    nextCursor: string | null;
+  };
 export type GetApiV1CatalogueByCatalogueIdApiArg = {
   catalogueId: string;
   cursor?: string;
@@ -497,8 +504,8 @@ export type GetApiV1CatalogueByCatalogueIdApiArg = {
 };
 export type PutApiV1CatalogueByCatalogueIdApiResponse =
   /** status 200 Catalogue updated successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PutApiV1CatalogueByCatalogueIdApiArg = {
   catalogueId: string;
   body: {
@@ -512,25 +519,25 @@ export type DeleteApiV1CatalogueByCatalogueIdApiArg = {
 };
 export type GetApiV1CatalogueAllApiResponse =
   /** status 200 All items retrieved successfully */ {
-  items: {
-    itemId: string;
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    price: number;
-    metadata?: any | null;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    image: {
-      imageUrl: string;
-      blurhash?: string;
-      uploadedAt?: number;
-    };
-  }[];
-  nextCursor: string | null;
-};
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+    nextCursor: string | null;
+  };
 export type GetApiV1CatalogueAllApiArg = {
   cursor?: string;
   order?: "asc" | "desc";
@@ -538,8 +545,8 @@ export type GetApiV1CatalogueAllApiArg = {
 };
 export type PostApiV1CatalogueBulkUpdatePricesApiResponse =
   /** status 200 Prices updated successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PostApiV1CatalogueBulkUpdatePricesApiArg = {
   body: {
     items: {
@@ -555,8 +562,8 @@ export type PostApiV1CatalogueBulkUpdatePricesApiArg = {
 };
 export type PostApiV1CatalogueBulkTransferItemsApiResponse =
   /** status 200 Items transferred successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PostApiV1CatalogueBulkTransferItemsApiArg = {
   body: {
     items: {
@@ -569,8 +576,8 @@ export type PostApiV1CatalogueBulkTransferItemsApiArg = {
 };
 export type DeleteApiV1CatalogueBulkDeleteItemsApiResponse =
   /** status 200 Items deleted successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type DeleteApiV1CatalogueBulkDeleteItemsApiArg = {
   body: {
     items: {
@@ -581,8 +588,8 @@ export type DeleteApiV1CatalogueBulkDeleteItemsApiArg = {
 };
 export type PutApiV1CatalogueByCatalogueIdAndItemIdApiResponse =
   /** status 200 Catalogue item updated successfully */ {
-  message: string;
-};
+    message: string;
+  };
 export type PutApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
   catalogueId: string;
   itemId: string;
@@ -599,93 +606,93 @@ export type DeleteApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
 };
 export type GetApiV1CatalogueByCatalogueIdAndItemIdApiResponse =
   /** status 200 Catalogue item retrieved successfully */ {
-  itemId: string;
-  catalogueId: string;
-  orgId: string;
-  name: string;
-  description?: string;
-  price: number;
-  metadata?: any | null;
-  createdAt: number;
-  updatedAt: number;
-  deletedAt?: number;
-  image: {
-    imageUrl: string;
-    blurhash?: string;
-    uploadedAt?: number;
+    itemId: string;
+    catalogueId: string;
+    orgId: string;
+    name: string;
+    description?: string;
+    price: number;
+    metadata?: any | null;
+    createdAt: number;
+    updatedAt: number;
+    deletedAt?: number;
+    image: {
+      imageUrl: string;
+      blurhash?: string;
+      uploadedAt?: number;
+    };
   };
-};
 export type GetApiV1CatalogueByCatalogueIdAndItemIdApiArg = {
   catalogueId: string;
   itemId: string;
 };
 export type GetApiV1CatalogueSearchItemsByCatalogueIdApiResponse =
   /** status 200 Catalogues searched successfully */ {
-  items: {
-    itemId: string;
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    price: number;
-    metadata?: any | null;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    image: {
-      imageUrl: string;
-      blurhash?: string;
-      uploadedAt?: number;
-    };
-  }[];
-};
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+  };
 export type GetApiV1CatalogueSearchItemsByCatalogueIdApiArg = {
   catalogueId: string;
   search: string;
 };
 export type GetApiV1CatalogueSearchItemsApiResponse =
   /** status 200 Catalogues searched successfully */ {
-  items: {
-    itemId: string;
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    price: number;
-    metadata?: any | null;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    image: {
-      imageUrl: string;
-      blurhash?: string;
-      uploadedAt?: number;
-    };
-  }[];
-};
+    items: {
+      itemId: string;
+      catalogueId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      price: number;
+      metadata?: any | null;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      image: {
+        imageUrl: string;
+        blurhash?: string;
+        uploadedAt?: number;
+      };
+    }[];
+  };
 export type GetApiV1CatalogueSearchItemsApiArg = {
   search: string;
 };
 export type GetApiV1CatalogueSearchApiResponse =
   /** status 200 Catalogues searched successfully */ {
-  items: {
-    catalogueId: string;
-    orgId: string;
-    name: string;
-    description?: string;
-    createdBy: string;
-    createdAt: number;
-    updatedAt: number;
-    deletedAt?: number;
-    images: {
-      imageUrl: string;
-      blurhash?: string;
-      imageId: string;
+    items: {
       catalogueId: string;
-      itemId: string;
+      orgId: string;
+      name: string;
+      description?: string;
+      createdBy: string;
+      createdAt: number;
+      updatedAt: number;
+      deletedAt?: number;
+      images: {
+        imageUrl: string;
+        blurhash?: string;
+        imageId: string;
+        catalogueId: string;
+        itemId: string;
+      }[];
     }[];
-  }[];
-};
+  };
 export type GetApiV1CatalogueSearchApiArg = {
   search: string;
 };
@@ -699,19 +706,19 @@ export type PostApiV1InvitationApiArg = {
 };
 export type GetApiV1InvitationApiResponse =
   /** status 200 Invitation details */ {
-  code: string;
-  role: string;
-  createdBy: string;
-  createdAt: number;
-  expiresAt: number;
-  usedBy?: string;
-  usedAt?: number;
-}[];
+    code: string;
+    role: string;
+    createdBy: string;
+    createdAt: number;
+    expiresAt: number;
+    usedBy?: string;
+    usedAt?: number;
+  }[];
 export type GetApiV1InvitationApiArg = void;
 export type PostApiV1InvitationAcceptApiResponse =
   /** status 200 Invitation accepted */ {
-  message: string;
-};
+    message: string;
+  };
 export type PostApiV1InvitationAcceptApiArg = {
   body: {
     code: string;
