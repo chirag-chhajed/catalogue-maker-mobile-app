@@ -26,11 +26,23 @@ const loginSchema = z.object({
   password: z.string().trim().min(6, "Password must be at least 6 characters"),
 });
 
-const signupSchema = z.object({
-  name: z.string().trim().min(1, "Name is required"),
-  email: z.string().trim().email("Invalid email address"),
-  password: z.string().trim().min(6, "Password must be at least 6 characters"),
-});
+const signupSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    email: z.string().trim().email("Invalid email address"),
+    password: z
+      .string()
+      .trim()
+      .min(6, "Password must be at least 6 characters"),
+    confirmPassword: z
+      .string()
+      .trim()
+      .min(6, "Password must be at least 6 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
@@ -43,23 +55,35 @@ const LoginForm = () => {
       password: "",
     },
   });
-
-  const onSubmit = (data: LoginFormData) => {
-    console.log(data);
-    toast.promise(
-      auth().signInWithEmailAndPassword(data.email, data.password),
-      {
-        loading: "Logging in...",
-        success: (data) => {
-          console.log(data);
-          return "Logged in";
+  const [login, { isLoading }] = usePostApiV1AuthLoginMutation();
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const hello = await auth().signInWithEmailAndPassword(
+        data.email,
+        data.password,
+      );
+      const idToken = await hello.user?.getIdToken();
+      await login({
+        body: {
+          email: data.email,
+          name: data.email,
+          idToken,
         },
-        error: (error) => {
-          console.log(error);
-          return "Failed to log in";
-        },
-      },
-    );
+      }).unwrap();
+    } catch (error) {
+      const errorCode = error?.code;
+      if (errorCode === "auth/user-not-found") {
+        toast.error("User not found");
+      } else if (errorCode === "auth/wrong-password") {
+        toast.error("Wrong password");
+      } else if (errorCode === "auth/invalid-email") {
+        toast.error("Invalid email");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      await auth().signOut();
+    }
   };
 
   return (
@@ -77,6 +101,7 @@ const LoginForm = () => {
                 onChangeText={onChange}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                editable={!isLoading || !form.formState.isSubmitting}
               />
               {error?.message && (
                 <Text className="mt-1 font-mono text-sm text-destructive">
@@ -97,6 +122,7 @@ const LoginForm = () => {
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry
+                editable={!isLoading || !form.formState.isSubmitting}
               />
               {error?.message && (
                 <Text className="mt-1 font-mono text-sm text-destructive">
@@ -110,12 +136,14 @@ const LoginForm = () => {
         <Pressable
           onPress={() => router.push("/forget-password")}
           className="self-end"
+          disabled={isLoading || form.formState.isSubmitting}
         >
           <Text className="font-mono text-sm text-primary">
             Forgot Password?
           </Text>
         </Pressable>
         <Button
+          disabled={isLoading || form.formState.isSubmitting}
           onPress={form.handleSubmit(onSubmit)}
           className="w-full rounded-lg bg-primary py-3"
         >
@@ -137,23 +165,36 @@ const SignupForm = () => {
       password: "",
     },
   });
+  const [login, { isLoading }] = usePostApiV1AuthLoginMutation();
 
-  const onSubmit = (data: SignupFormData) => {
-    console.log(data);
-    toast.promise(
-      auth().createUserWithEmailAndPassword(data.email, data.password),
-      {
-        loading: "Signing up...",
-        success: (data) => {
-          console.log(data);
-          return "Signed up";
+  const onSubmit = async (data: SignupFormData) => {
+    try {
+      const hello = await auth().createUserWithEmailAndPassword(
+        data.email,
+        data.password,
+      );
+      const idToken = await hello.user?.getIdToken();
+      await login({
+        body: {
+          email: data.email,
+          name: data.name,
+          idToken,
         },
-        error: (error) => {
-          console.log(error);
-          return "Failed to sign up";
-        },
-      },
-    );
+      }).unwrap();
+    } catch (error) {
+      const errorCode = error?.code;
+      if (errorCode === "auth/email-already-in-use") {
+        toast.error("Email already in use");
+      } else if (errorCode === "auth/invalid-email") {
+        toast.error("Invalid email");
+      } else if (errorCode === "auth/weak-password") {
+        toast.error("Weak password");
+      } else {
+        toast.error("Something went wrong");
+      }
+    } finally {
+      await auth().signOut();
+    }
   };
 
   return (
@@ -169,6 +210,7 @@ const SignupForm = () => {
                 placeholder="Name"
                 value={value}
                 onChangeText={onChange}
+                editable={!isLoading || !form.formState.isSubmitting}
               />
               {error?.message && (
                 <Text className="mt-1 font-mono text-sm text-destructive">
@@ -191,6 +233,7 @@ const SignupForm = () => {
                 onChangeText={onChange}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                editable={!isLoading || !form.formState.isSubmitting}
               />
               {error?.message && (
                 <Text className="mt-1 font-mono text-sm text-destructive">
@@ -212,6 +255,7 @@ const SignupForm = () => {
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry
+                editable={!isLoading && !form.formState.isSubmitting}
               />
               {error?.message && (
                 <Text className="mt-1 font-mono text-sm text-destructive">
@@ -221,10 +265,31 @@ const SignupForm = () => {
             </View>
           )}
         />
-
+        <Controller
+          control={form.control}
+          name="confirmPassword"
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <TextInput
+                className="w-full rounded-lg border border-border bg-card px-4 py-2.5 font-mono text-foreground"
+                placeholder="Confirm Password"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                editable={!isLoading && !form.formState.isSubmitting}
+              />
+              {error?.message && (
+                <Text className="mt-1 font-mono text-sm text-destructive">
+                  {error.message}
+                </Text>
+              )}
+            </View>
+          )}
+        />
         <Button
           onPress={form.handleSubmit(onSubmit)}
           className="w-full rounded-lg bg-primary py-3"
+          disabled={isLoading || form.formState.isSubmitting}
         >
           <Text className="font-mono font-semibold text-primary-foreground">
             Sign Up

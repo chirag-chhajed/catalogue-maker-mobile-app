@@ -32,7 +32,16 @@ export default function ForgetPassword() {
         router.back();
         return "Reset email sent! Check your inbox";
       },
-      error: "Failed to send reset email",
+      error: (error) => {
+        const errorCode = error?.code;
+        if (errorCode === "auth/user-not-found") {
+          return "User not found";
+        } else if (errorCode === "auth/invalid-email") {
+          return "Invalid email";
+        } else {
+          return "Failed to send reset email";
+        }
+      },
     });
   };
 
